@@ -4,6 +4,7 @@
   "main": "../workers/events-consumer.ts",
   "compatibility_date": "2026-08-25",
   "compatibility_flags": ["nodejs_compat"],
+  "alias": { "server-only": "../workers/server-only.ts" },
   "workers_dev": true,
   "preview_urls": false,
   "vars": {

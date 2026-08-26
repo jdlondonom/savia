@@ -137,9 +137,11 @@ test('privacidad elimina también generaciones y payloads salientes', async () =
 
 test('los manifiestos disponibles son plantillas y no publican el servicio', async () => {
   const app = await read('cloudflare/wrangler.app.production.example.jsonc');
+  const events = await read('cloudflare/wrangler.events.production.example.jsonc');
   assert.match(app, /REPLACE_CONTROL_D1_ID/);
   assert.match(app, /SAVIA_REQUIRE_DEDICATED_TENANT_DATA/);
   assert.match(app, /\.\.\/dist\/server\/index\.js/);
   assert.match(app, /\.\.\/dist\/client/);
   assert.match(app, /"no_bundle": true/);
+  assert.match(events, /"server-only"/);
 });
