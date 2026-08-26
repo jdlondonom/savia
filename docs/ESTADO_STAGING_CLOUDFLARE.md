@@ -8,7 +8,7 @@ Este ambiente sirve para aceptación técnica y configuración inicial. No es el
 
 - Aplicación: [savia-app-staging.jdlondonom.workers.dev](https://savia-app-staging.jdlondonom.workers.dev)
 - Salud: [savia-app-staging.jdlondonom.workers.dev/api/health](https://savia-app-staging.jdlondonom.workers.dev/api/health)
-- Release desplegada: `15bdade24b31849d70944b2f5f73f499a5423a1e`
+- Release desplegada: `da01b65993aa6167d3153cc3e34689c8fe47f4e5`
 
 ## Inventario activo
 
@@ -46,6 +46,8 @@ Las configuraciones reales de Wrangler contienen IDs de la cuenta, por lo que es
 
 - `GET /api/health` respondió HTTP 200 con ambiente `staging` y la release indicada.
 - Las cabeceras de seguridad se observaron en la respuesta pública.
+- El panel global y la configuración del tenant muestran la URL HTTPS pública completa de cada webhook; no exponen `localhost`.
+- La interfaz identifica correctamente el ambiente de pruebas, la release y el simulador de WhatsApp pendiente de configurar.
 - El primer superadministrador está activo con MFA y `/setup` ya redirige a `/login`.
 - TypeScript, ESLint, 7 pruebas unitarias, 13 pruebas de arquitectura y el build Vinext finalizaron correctamente.
 - El formulario de alta valida en el navegador la longitud y complejidad de la contraseña antes de invocar al servidor.
@@ -55,6 +57,7 @@ Las configuraciones reales de Wrangler contienen IDs de la cuenta, por lo que es
 - El bucket dedicado superó una prueba remota de escritura, lectura íntegra y eliminación; el objeto de diagnóstico fue eliminado.
 - D1, R2 y Vectorize del tenant inicial fueron comprobados y `tenant_resources` quedó en estado `ready` con los bindings `TENANT_STARTER_DB`, `TENANT_STARTER_FILES` y `TENANT_STARTER_VECTORS`.
 - La invitación que expuso el fallo continúa pendiente y no produjo una cuenta parcial; puede reintentarse con el mismo enlace.
+- El procedimiento para incorporar una cuenta real de Meta quedó documentado en [MANUAL_USUARIO_WHATSAPP_META.md](MANUAL_USUARIO_WHATSAPP_META.md).
 
 ## Inicialización completada
 
