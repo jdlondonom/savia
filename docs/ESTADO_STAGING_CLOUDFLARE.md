@@ -24,7 +24,8 @@ Este ambiente sirve para aceptación técnica y configuración inicial. No es el
 | Errores definitivos | Queue `savia-events-dead-letter-staging` | Activa |
 | Serialización | Durable Object `ConversationCoordinator` | Activo |
 | Protección pública | Turnstile `Savia staging` | Activo en alta, acceso y recuperación |
-| Archivos | R2 | Pendiente de suscripción y creación |
+| Archivos | R2 `savia-staging-fallback-disabled` | Activo; fallback de seguridad |
+| Archivos del tenant inicial | R2 `savia-tenant-starter-staging` | Activo y enlazado a los tres Workers |
 
 Las configuraciones reales de Wrangler contienen IDs de la cuenta, por lo que están excluidas de Git. Los archivos `cloudflare/*.example.jsonc` son la fuente versionada para reconstruirlas.
 
@@ -48,6 +49,7 @@ Las configuraciones reales de Wrangler contienen IDs de la cuenta, por lo que es
 - TypeScript, ESLint, 4 pruebas unitarias, 12 pruebas de arquitectura y el build Vinext finalizaron correctamente.
 - Los tres Workers se publicaron correctamente con sus bindings y disparadores.
 - Las migraciones remotas crearon 21 tablas de control y 17 tablas del plano de tenant, sin mezclar datos operativos en el plano global.
+- El bucket dedicado superó una prueba remota de escritura, lectura íntegra y eliminación; el objeto de diagnóstico fue eliminado.
 
 ## Acciones manuales inmediatas
 
@@ -59,17 +61,18 @@ Las configuraciones reales de Wrangler contienen IDs de la cuenta, por lo que es
 
 El token no debe copiarse a documentación, incidencias, mensajes ni archivos del repositorio.
 
-## Bloqueos antes de probar el servicio completo
+## Activaciones pendientes antes de probar el servicio completo
 
-### R2
+### R2 y control de costos
 
-R2 requiere aceptar en Cloudflare una suscripción con renovación automática y cobro por uso que exceda la franquicia incluida. Hasta recibir aprobación expresa no se crea ningún bucket ni se añade un binding R2. Mientras siga pendiente:
+La suscripción R2 fue autorizada y está activa. Cloudflare puede cobrar automáticamente el uso que exceda la franquicia incluida, por lo que debe configurarse seguimiento de consumo y presupuesto antes de incorporar clientes.
 
-- no se deben probar cargas de archivos ni eliminación física de documentos;
-- el RAG basado en archivos no está completo;
-- no existe destino R2 para respaldos.
+- `savia-staging-fallback-disabled` existe únicamente para que una resolución incorrecta falle de forma controlada; no debe almacenar documentos de clientes.
+- `savia-tenant-starter-staging` es el bucket dedicado del tenant inicial.
+- Ambos bindings están presentes en aplicación, consumidor y mantenimiento.
+- La activación de R2 no sustituye el respaldo externo ni la prueba de restauración.
 
-Al aprobarse, deben crearse un bucket de fallback deshabilitado y un bucket dedicado para el tenant inicial, añadir `FILES` y `TENANT_STARTER_FILES` a los tres Workers, volver a publicar y repetir las pruebas de aislamiento y ciclo de vida de documentos.
+Después de crear el primer tenant desde el panel global se debe registrar y validar `TENANT_STARTER_FILES` en `tenant_resources`, y después probar carga, recuperación, retención y eliminación física de un documento desde la aplicación.
 
 ### Integraciones externas
 

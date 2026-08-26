@@ -147,13 +147,13 @@ Desplegado en staging el 25 de agosto de 2026:
 
 - Workers de aplicación, eventos y mantenimiento;
 - D1 de control y D1 inicial de tenant con migraciones;
+- R2 de seguridad y R2 dedicado para el tenant inicial;
 - Vectorize, Queue, DLQ y Durable Object;
 - secretos de plataforma cifrados y Turnstile activo;
 - endpoint público de salud, observabilidad y tareas programadas.
 
 Pendiente:
 
-- activación de R2 y creación de buckets dedicados;
 - alta del primer superadministrador y comprobación manual del MFA;
 - configuración de Meta y proveedores;
 - pruebas pagadas/reales;

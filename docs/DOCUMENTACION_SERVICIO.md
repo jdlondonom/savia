@@ -9,9 +9,9 @@ Estado de esta entrega:
 - ejecución local persistente en el PC;
 - staging publicado en `savia-app-staging.jdlondonom.workers.dev`;
 - Workers de aplicación, eventos y mantenimiento desplegados por separado;
-- D1 de control y de tenant, Vectorize, Queue, DLQ, Durable Object y Turnstile activos;
+- D1 de control y de tenant, R2, Vectorize, Queue, DLQ, Durable Object y Turnstile activos;
 - arquitectura y plantillas separadas para staging y producción;
-- R2 pendiente de activación porque requiere aceptar una suscripción con cobro por excedentes;
+- bucket R2 de seguridad y bucket R2 dedicado para el tenant inicial, enlazados a los tres Workers;
 - integraciones de Meta, IA y correo listas para recibir credenciales externas;
 - producción, dominio comercial, WAF personalizado, alertas y respaldo externo todavía pendientes.
 
@@ -273,7 +273,6 @@ El código no puede completar sin cuentas del propietario:
 - verificación y configuración de Meta WhatsApp Business;
 - llaves/modelos de IA;
 - dominio remitente y llave de Resend o Postmark;
-- suscripción y buckets R2 de staging;
 - dominio comercial y ambiente de producción en Cloudflare;
 - reglas WAF personalizadas, alertas y destino externo de respaldo;
 - revisión legal y política de privacidad aplicables.
