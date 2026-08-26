@@ -3,6 +3,7 @@
 import { useState, useTransition, type FormEvent } from 'react';
 import { bootstrapPlatformAction } from '@/app/auth-actions';
 import { authClient } from '@/lib/auth-client';
+import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH, passwordPolicyMessage } from '@/lib/password-policy';
 import { Turnstile } from '@/app/turnstile';
 
 export function SetupForm({
@@ -25,6 +26,11 @@ export function SetupForm({
       password: String(form.get('password') ?? ''),
       bootstrapToken: String(form.get('bootstrapToken') ?? ''),
     };
+    const passwordError = passwordPolicyMessage(input.password);
+    if (passwordError) {
+      setError(passwordError);
+      return;
+    }
     setError('');
     startTransition(async () => {
       try {
@@ -48,9 +54,9 @@ export function SetupForm({
       <div><p className="text-xs font-black uppercase tracking-[.16em] text-[#648073]">Paso 1 de 2</p><h2 className="mt-2 text-2xl font-black tracking-tight">Superadministrador global</h2><p className="mt-2 text-sm leading-6 text-[#718078]">Después configurarás el autenticador MFA obligatorio.</p></div>
       <Field label="Nombre completo" name="name" autoComplete="name" placeholder="Juan Londoño" />
       <Field label="Correo" name="email" type="email" autoComplete="email" placeholder="admin@tuempresa.com" />
-      <Field label="Contraseña" name="password" type="password" autoComplete="new-password" placeholder="Mínimo 12 caracteres" />
+      <Field label="Contraseña" name="password" type="password" autoComplete="new-password" placeholder="Mínimo 12 caracteres" minLength={PASSWORD_MIN_LENGTH} maxLength={PASSWORD_MAX_LENGTH} />
       {requiresBootstrapToken
-        ? <Field label="Token de inicialización" name="bootstrapToken" type="password" autoComplete="off" placeholder="Token temporal de producción" />
+        ? <Field label="Token de inicialización" name="bootstrapToken" type="password" autoComplete="off" placeholder="Token temporal de producción" minLength={32} />
         : null}
       <p className="rounded-xl bg-[#f4f7f4] p-3 text-xs leading-5 text-[#607168]">Usa letras, al menos un número y un símbolo. Savia no permitirá el acceso sin configurar MFA.</p>
       <Turnstile siteKey={turnstileSiteKey} onToken={setCaptchaToken} />
@@ -60,6 +66,6 @@ export function SetupForm({
   );
 }
 
-function Field({ label, name, type = 'text', autoComplete, placeholder }: { label: string; name: string; type?: string; autoComplete: string; placeholder: string }) {
-  return <label className="block"><span className="mb-1.5 block text-xs font-extrabold uppercase tracking-[.08em] text-[#687970]">{label}</span><input required name={name} type={type} autoComplete={autoComplete} placeholder={placeholder} className="w-full rounded-xl border border-[#d6e1da] px-4 py-3 text-sm shadow-sm focus:border-[#628c76]" /></label>;
+function Field({ label, name, type = 'text', autoComplete, placeholder, minLength, maxLength }: { label: string; name: string; type?: string; autoComplete: string; placeholder: string; minLength?: number; maxLength?: number }) {
+  return <label className="block"><span className="mb-1.5 block text-xs font-extrabold uppercase tracking-[.08em] text-[#687970]">{label}</span><input required name={name} type={type} autoComplete={autoComplete} placeholder={placeholder} minLength={minLength} maxLength={maxLength} className="w-full rounded-xl border border-[#d6e1da] px-4 py-3 text-sm shadow-sm focus:border-[#628c76]" /></label>;
 }

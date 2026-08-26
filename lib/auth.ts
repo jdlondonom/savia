@@ -4,6 +4,7 @@ import { APIError, createAuthMiddleware } from 'better-auth/api';
 import { captcha, twoFactor } from 'better-auth/plugins';
 import { sendPasswordResetEmail } from '@/lib/email';
 import { isDeployedEnvironment } from '@/lib/environment';
+import { isStrongPassword } from '@/lib/password-policy';
 
 const localBaseUrl = 'http://localhost:3000';
 
@@ -97,15 +98,6 @@ function createAuthInstance(disableSignUp: boolean) {
         : []),
     ],
   });
-}
-
-function isStrongPassword(value: unknown): boolean {
-  const password = String(value ?? '');
-  return password.length >= 12
-    && password.length <= 128
-    && /[a-záéíóúñ]/i.test(password)
-    && /\d/.test(password)
-    && /[^\p{L}\p{N}]/u.test(password);
 }
 
 export const auth = createAuthInstance(true);

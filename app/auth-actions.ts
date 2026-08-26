@@ -5,6 +5,7 @@ import { env } from 'cloudflare:workers';
 import { provisionCredentialUser } from '@/lib/auth';
 import { dbBatch, dbFirst, dbRun, ensureDatabase } from '@/lib/database';
 import { isDeployedEnvironment } from '@/lib/environment';
+import { passwordPolicyMessage } from '@/lib/password-policy';
 
 export type InvitationPreview = {
   email: string;
@@ -235,13 +236,8 @@ function validEmail(value: unknown): string {
 }
 
 function validatePassword(value: unknown): asserts value is string {
-  const password = String(value ?? '');
-  if (password.length < 12 || password.length > 128) {
-    throw new Error('La contraseña debe tener entre 12 y 128 caracteres.');
-  }
-  if (!/[a-záéíóúñ]/i.test(password) || !/\d/.test(password) || !/[^\p{L}\p{N}]/u.test(password)) {
-    throw new Error('Incluye letras, al menos un número y un símbolo.');
-  }
+  const message = passwordPolicyMessage(value);
+  if (message) throw new Error(message);
 }
 
 function requiredText(value: unknown, label: string, maxLength: number): string {
