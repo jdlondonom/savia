@@ -1,5 +1,10 @@
 import { env } from 'cloudflare:workers';
-import { isDeployedEnvironment } from '@/lib/environment';
+import {
+  getEnvironmentLabel,
+  getPublicAppUrl,
+  getReleaseLabel,
+  isDeployedEnvironment,
+} from '@/lib/environment';
 import { getWhatsAppChannelSummary } from '@/lib/whatsapp-config';
 import type { RuntimeStatus } from '@/lib/types';
 
@@ -21,15 +26,20 @@ export async function getRuntimeStatus(
 ): Promise<RuntimeStatus> {
   const ai = getAiConfig();
   const whatsapp = await getWhatsAppChannelSummary(tenantId);
+  const isDeployed = isDeployedEnvironment();
 
   return {
+    isDeployed,
+    environmentLabel: getEnvironmentLabel(),
+    releaseLabel: getReleaseLabel(),
     aiConfigured: tenantAi?.configured ?? Boolean(ai),
-    aiLabel: tenantAi?.label ?? (ai ? `Modelo local · ${ai.model}` : 'Motor RAG local de respaldo'),
+    aiLabel: tenantAi?.label ?? (ai ? `Modelo local · ${ai.model}` : 'Asistente básico de respaldo'),
     whatsappConfigured: whatsapp.configured,
     whatsappLabel: whatsapp.label,
-    persistenceLabel: isDeployedEnvironment()
+    persistenceLabel: isDeployed
       ? 'Datos y archivos dedicados por cliente'
       : 'Base local D1 + archivos R2',
     webhookPath: whatsapp.webhookPath,
+    webhookUrl: new URL(whatsapp.webhookPath, `${getPublicAppUrl()}/`).toString(),
   };
 }

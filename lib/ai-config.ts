@@ -184,7 +184,7 @@ export async function getTenantAiStatus(tenantId: string): Promise<{
      WHERE s.tenant_id = ?`,
     tenantId,
   );
-  if (!row?.provider || !row.model) return { configured: false, label: 'Motor RAG local de respaldo' };
+  if (!row?.provider || !row.model) return { configured: false, label: 'Asistente básico de respaldo' };
   return { configured: true, label: `${providerDisplayName(row.provider)} · ${row.model}` };
 }
 

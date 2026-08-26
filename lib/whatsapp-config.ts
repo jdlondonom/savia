@@ -1,4 +1,5 @@
 import { dbFirst } from '@/lib/database';
+import { isDeployedEnvironment } from '@/lib/environment';
 import { decryptSecret } from '@/lib/secrets';
 
 type ChannelRow = {
@@ -46,7 +47,9 @@ export async function getWhatsAppChannelSummary(tenantId: string): Promise<{
   const configured = row?.status === 'active' && Boolean(row.phone_number_id);
   return {
     configured,
-    label: configured ? 'WhatsApp Cloud API conectado' : 'Simulador local activo',
+    label: configured
+      ? 'WhatsApp Cloud API conectado'
+      : isDeployedEnvironment() ? 'Simulador de pruebas activo' : 'Simulador local activo',
     webhookPath: row?.webhook_key
       ? `/api/webhooks/whatsapp/${row.webhook_key}`
       : '/api/webhooks/whatsapp/sin-configurar',

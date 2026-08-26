@@ -75,6 +75,7 @@ pnpm build
 
 ## Documentación
 
+- [Manual para conectar WhatsApp Business con Meta](docs/MANUAL_USUARIO_WHATSAPP_META.md)
 - [Documentación funcional y técnica](docs/DOCUMENTACION_SERVICIO.md)
 - [Operación local paso a paso](docs/OPERACION_LOCAL.md)
 - [Arquitectura de producción](docs/ARQUITECTURA_PRODUCCION.md)

@@ -122,9 +122,24 @@ test('staging aplica controles de despliegue y no se comporta como local', async
   const environment = await read('lib/environment.ts');
   const authActions = await read('app/auth-actions.ts');
   const setup = await read('app/setup/page.tsx');
+  const runtime = await read('lib/runtime.ts');
+  const platform = await read('lib/platform.ts');
+  const platformActions = await read('app/platform/actions.ts');
+  const dashboard = await read('app/dashboard.tsx');
+  const operations = await read('app/platform/operations-panel.tsx');
   assert.match(environment, /!== 'local'/);
+  assert.match(environment, /APP_URL es obligatorio/);
+  assert.match(environment, /parsed\.protocol !== 'https:'/);
   assert.match(authActions, /isDeployedEnvironment/);
   assert.match(setup, /isDeployedEnvironment/);
+  assert.match(runtime, /webhookUrl: new URL/);
+  assert.match(platform, /whatsappWebhookUrl: new URL/);
+  assert.match(platformActions, /const baseUrl = getPublicAppUrl\(\)/);
+  assert.match(dashboard, /data\.runtime\.webhookUrl/);
+  assert.match(operations, /tenant\.whatsappWebhookUrl/);
+  assert.doesNotMatch(dashboard, /http:\/\/localhost:3000\{data\.runtime\.webhookPath\}/);
+  assert.doesNotMatch(dashboard, /sin sincronización con GitHub/);
+  assert.doesNotMatch(platformActions, /env\.BETTER_AUTH_URL \|\| 'http:\/\/localhost:3000'/);
 });
 
 test('la salida de WhatsApp usa outbox y reclama el mensaje antes de enviarlo', async () => {

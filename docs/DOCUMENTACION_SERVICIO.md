@@ -166,6 +166,8 @@ Cada tenant tiene una configuración cifrada y una URL única:
 
 `/api/webhooks/whatsapp/<webhook_key>`
 
+Para el alta guiada de una cuenta real, consulte el [manual para conectar WhatsApp Business con Meta](MANUAL_USUARIO_WHATSAPP_META.md). Está escrito para usuarios sin conocimientos técnicos y separa las tareas del cliente de las reservadas al superadministrador global.
+
 Entrada:
 
 1. se localiza la configuración por una clave opaca;

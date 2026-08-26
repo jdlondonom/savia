@@ -1,4 +1,5 @@
 import { dbAll, ensureDatabase } from '@/lib/database';
+import { getPublicAppUrl } from '@/lib/environment';
 import { tenantDbFirst } from '@/lib/tenant-database';
 import { requirePlatformUser, type PlatformRole } from '@/lib/session';
 
@@ -26,6 +27,7 @@ export type PlatformTenant = {
   whatsappPhoneNumberId: string | null;
   whatsappTokenHint: string | null;
   whatsappWebhookPath: string;
+  whatsappWebhookUrl: string;
   whatsappLastTestStatus: 'ok' | 'error' | null;
   messageRetentionDays: number;
   documentRetentionDays: number;
@@ -146,6 +148,7 @@ type MembershipRow = {
 export async function getPlatformData(): Promise<PlatformData> {
   await ensureDatabase();
   const session = await requirePlatformUser();
+  const publicAppUrl = getPublicAppUrl();
 
   const [tenants, users, memberships, providers, aiSettings, invitations, audit, emailSettings] = await Promise.all([
     dbAll<{
@@ -343,6 +346,10 @@ export async function getPlatformData(): Promise<PlatformData> {
       whatsappPhoneNumberId: tenant.phone_number_id,
       whatsappTokenHint: tenant.access_token_hint,
       whatsappWebhookPath: `/api/webhooks/whatsapp/${tenant.webhook_key}`,
+      whatsappWebhookUrl: new URL(
+        `/api/webhooks/whatsapp/${tenant.webhook_key}`,
+        `${publicAppUrl}/`,
+      ).toString(),
       whatsappLastTestStatus: tenant.whatsapp_last_test_status,
       messageRetentionDays: Number(tenant.message_retention_days),
       documentRetentionDays: Number(tenant.document_retention_days),

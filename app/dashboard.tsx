@@ -224,7 +224,7 @@ function Sidebar({
           <p className="text-xs leading-5 text-[#9cc0b4]">Activo 24/7 · Conocimiento aislado para {data.tenant.name}.</p>
         </div>
         <button onClick={() => { void authClient.signOut().then(() => window.location.assign('/login')); }} className="w-full rounded-xl px-3 py-2 text-xs font-bold text-[#91b5a8] hover:bg-white/[.06] hover:text-white">Cerrar sesión</button>
-        <p className="px-2 text-[10px] text-[#789f91]">Prototipo local · sin sincronización con GitHub</p>
+        <p className="px-2 text-[10px] text-[#789f91]">{data.runtime.environmentLabel} · {data.runtime.releaseLabel}</p>
       </div>
     </aside>
   );
@@ -849,7 +849,7 @@ function SettingsView({ data, execute, isPending }: { data: DashboardData; execu
 
         <div className="space-y-5">
           <article className="rounded-[22px] border border-[#dbe4de] bg-white p-5">
-            <h2 className="text-base font-extrabold">Estado local</h2>
+            <h2 className="text-base font-extrabold">Estado del servicio</h2>
             <div className="mt-4 space-y-3">
               <StatusRow label="Inteligencia artificial" value={data.runtime.aiLabel} active={data.runtime.aiConfigured} />
               <StatusRow label="Canal" value={data.runtime.whatsappLabel} active={data.runtime.whatsappConfigured} />
@@ -861,8 +861,12 @@ function SettingsView({ data, execute, isPending }: { data: DashboardData; execu
           <article className="rounded-[22px] border border-[#dbe4de] bg-[#173f34] p-5 text-white">
             <div className="flex items-center justify-between"><h2 className="text-base font-extrabold">WhatsApp Cloud API</h2><span className={`rounded-full px-2.5 py-1 text-[9px] font-black ${data.runtime.whatsappConfigured ? 'bg-[#d8f45f] text-[#173f34]' : 'bg-white/10 text-[#c4d8d0]'}`}>{data.runtime.whatsappConfigured ? 'CONECTADO' : 'PENDIENTE'}</span></div>
             <p className="mt-3 text-xs leading-5 text-[#b9d2c9]">Webhook preparado para verificación, recepción de mensajes, estados de entrega y respuestas de texto.</p>
-            <div className="mt-4 rounded-xl bg-black/10 p-3 font-mono text-[10px] text-[#d8f45f]">http://localhost:3000{data.runtime.webhookPath}</div>
-            <p className="mt-3 text-[10px] leading-4 text-[#91b3a7]">Meta necesita una URL HTTPS pública. En desarrollo local se usa un túnel seguro; las credenciales permanecen fuera de la interfaz.</p>
+            <div className="mt-4 break-all rounded-xl bg-black/10 p-3 font-mono text-[10px] text-[#d8f45f]">{data.runtime.webhookUrl}</div>
+            <p className="mt-3 text-[10px] leading-4 text-[#91b3a7]">{data.runtime.isDeployed
+              ? data.runtime.whatsappConfigured
+                ? 'URL HTTPS pública exclusiva para este cliente. Usa esta misma dirección al configurar el webhook en Meta.'
+                : 'El administrador global debe completar y probar las credenciales de Meta antes de registrar esta URL.'
+              : 'Para recibir eventos de Meta durante el desarrollo local se necesita un túnel HTTPS seguro.'}</p>
           </article>
 
           <article className="rounded-[22px] border border-[#dbe4de] bg-white p-5">

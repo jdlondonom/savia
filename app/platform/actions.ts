@@ -5,7 +5,7 @@ import { generateText } from 'ai';
 import { createTenantLanguageModel, embedTenantTexts, getTenantAiRuntime } from '@/lib/ai-config';
 import { dbAll, dbBatch, dbFirst, dbRun } from '@/lib/database';
 import { sendInvitationEmail, sendTransactionalEmail } from '@/lib/email';
-import { requiresDedicatedTenantData } from '@/lib/environment';
+import { getPublicAppUrl, requiresDedicatedTenantData } from '@/lib/environment';
 import {
   getPlatformData,
   type AccountStatus,
@@ -244,7 +244,7 @@ export async function inviteAccessAction(input: {
     ),
   ]);
 
-  const baseUrl = (env.BETTER_AUTH_URL || 'http://localhost:3000').replace(/\/$/, '');
+  const baseUrl = getPublicAppUrl();
   const invitationUrl = `${baseUrl}/invite/${token}`;
   const delivery = await sendInvitationEmail({ email, name, scopeName, invitationUrl });
   return {
@@ -286,7 +286,7 @@ export async function generatePasswordRecoveryAction(userId: string): Promise<Re
       now.toISOString(),
     ),
   ]);
-  const baseUrl = (env.BETTER_AUTH_URL || 'http://localhost:3000').replace(/\/$/, '');
+  const baseUrl = getPublicAppUrl();
   return {
     data: await getPlatformData(),
     recoveryUrl: `${baseUrl}/api/auth/reset-password/${token}?callbackURL=${encodeURIComponent('/reset-password')}`,

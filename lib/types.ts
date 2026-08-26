@@ -133,12 +133,16 @@ export type DashboardStats = {
 };
 
 export type RuntimeStatus = {
+  isDeployed: boolean;
+  environmentLabel: string;
+  releaseLabel: string;
   aiConfigured: boolean;
   aiLabel: string;
   whatsappConfigured: boolean;
   whatsappLabel: string;
   persistenceLabel: string;
   webhookPath: string;
+  webhookUrl: string;
 };
 
 export type DashboardData = {

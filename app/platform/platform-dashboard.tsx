@@ -139,7 +139,7 @@ function Overview({ data, onView }: { data: PlatformData; onView: (view: View) =
         <div className="space-y-3">{data.tenants.slice(0, 6).map((tenant) => <div key={tenant.id} className="flex items-center gap-3 rounded-2xl bg-[#f5f7f3] p-3"><StatusDot active={tenant.status === 'active'} /><div className="min-w-0 flex-1"><p className="truncate text-sm font-extrabold">{tenant.name}</p><p className="text-[10px] text-[#75847c]">{tenant.memberCount} usuarios · {tenant.knowledgeCount} fuentes</p></div><span className="text-[10px] font-black uppercase text-[#688075]">{tenant.status === 'active' ? 'Activo' : 'Suspendido'}</span></div>)}</div>
         <button onClick={() => onView('tenants')} className={`${secondaryButton} mt-4 w-full`}>Administrar clientes</button>
       </Panel>
-      <Panel title="Controles aplicados" description="Protecciones centrales del prototipo local.">
+      <Panel title="Controles aplicados" description="Protecciones centrales de identidad, secretos y aislamiento de Savia.">
         <div className="space-y-3"><Control label="MFA obligatorio" detail="TOTP o código de recuperación en cada acceso" active /><Control label="Llaves cifradas" detail="AES-GCM; nunca se muestran nuevamente" active /><Control label="Aislamiento multitenant" detail="Membresía y tenant validados en el servidor" active /><Control label="Registro de auditoría" detail="Cambios globales con actor y fecha" active /></div>
       </Panel>
     </div>
