@@ -6,6 +6,8 @@ import { provisionCredentialUser } from '@/lib/auth';
 import { dbBatch, dbFirst, dbRun, ensureDatabase } from '@/lib/database';
 import { isDeployedEnvironment } from '@/lib/environment';
 import { passwordPolicyMessage } from '@/lib/password-policy';
+import { tenantDbRun } from '@/lib/tenant-database';
+import { logOperationalEvent } from '@/lib/telemetry';
 
 export type InvitationPreview = {
   email: string;
@@ -149,11 +151,6 @@ export async function acceptInvitationAction(input: {
             VALUES (?, ?, ?, ?)`,
       bindings: [invitation.tenant_id, authUser.id, invitation.tenant_role, now],
     });
-    writes.push({
-      sql: `INSERT INTO audit_logs (id, tenant_id, user_id, action, entity_type, entity_id, detail, created_at)
-            VALUES (?, ?, ?, 'member.joined', 'user', ?, ?, ?)`,
-      bindings: [`audit_${crypto.randomUUID()}`, invitation.tenant_id, authUser.id, authUser.id, `${authUser.email} aceptó su invitación.`, now],
-    });
   }
   if (invitation.platform_role) {
     writes.push({
@@ -169,6 +166,26 @@ export async function acceptInvitationAction(input: {
   } catch (error) {
     await removeProvisionedAuthUser(authUser.id);
     throw error;
+  }
+
+  if (invitation.tenant_id && invitation.tenant_role) {
+    await tenantDbRun(
+      invitation.tenant_id,
+      `INSERT INTO audit_logs (id, tenant_id, user_id, action, entity_type, entity_id, detail, created_at)
+       VALUES (?, ?, ?, 'member.joined', 'user', ?, ?, ?)`,
+      `audit_${crypto.randomUUID()}`,
+      invitation.tenant_id,
+      authUser.id,
+      authUser.id,
+      `${authUser.email} aceptó su invitación.`,
+      now,
+    ).catch((error) => {
+      logOperationalEvent('warn', 'invitation.tenant_audit.deferred', {
+        tenantId: invitation.tenant_id,
+        invitationId: invitation.id,
+        error: error instanceof Error ? error.message.slice(0, 240) : 'Error de auditoría del tenant.',
+      });
+    });
   }
   return { email: authUser.email };
 }

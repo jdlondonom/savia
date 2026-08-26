@@ -29,6 +29,20 @@ test('los servicios de negocio usan el plano de datos del tenant', async () => {
   }
 });
 
+test('la aceptación de invitaciones mantiene separados control y datos del tenant', async () => {
+  const actions = await read('app/auth-actions.ts');
+  const inviteForm = await read('app/invite/[token]/invite-form.tsx');
+  const start = actions.indexOf('export async function acceptInvitationAction');
+  const end = actions.indexOf('async function assertAppEmailAvailable');
+  const acceptance = actions.slice(start, end);
+  assert.match(acceptance, /platformAudit/);
+  assert.match(acceptance, /tenantDbRun/);
+  assert.match(acceptance, /invitation\.tenant_audit\.deferred/);
+  assert.doesNotMatch(acceptance, /writes\.push\(\{\s*sql: `INSERT INTO audit_logs/s);
+  assert.match(inviteForm, /passwordPolicyMessage/);
+  assert.match(inviteForm, /minLength=\{PASSWORD_MIN_LENGTH\}/);
+});
+
 test('el webhook verifica firma antes de interpretar el JSON', async () => {
   const source = await read('app/api/webhooks/whatsapp/[webhookKey]/route.ts');
   const signature = source.indexOf('verifyMetaSignature');
