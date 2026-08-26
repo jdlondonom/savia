@@ -1,0 +1,143 @@
+-- Ejecutar sobre cada D1 dedicada de tenant. No contiene datos del plano global.
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE contacts (
+  id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL, whatsapp_id TEXT, name TEXT NOT NULL,
+  phone TEXT NOT NULL, email TEXT,
+  pipeline_stage TEXT NOT NULL DEFAULT 'new' CHECK (pipeline_stage IN ('new','qualified','proposal','won','lost')),
+  tags_json TEXT NOT NULL DEFAULT '[]', notes TEXT NOT NULL DEFAULT '',
+  last_contact_at TEXT NOT NULL, next_follow_up_at TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+  UNIQUE (tenant_id,id), UNIQUE (tenant_id,phone)
+);
+
+CREATE TABLE conversations (
+  id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL, contact_id TEXT NOT NULL,
+  channel TEXT NOT NULL DEFAULT 'demo' CHECK (channel IN ('whatsapp','demo')),
+  status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','closed')),
+  mode TEXT NOT NULL DEFAULT 'ai' CHECK (mode IN ('ai','human')), assigned_user_id TEXT,
+  last_message_at TEXT NOT NULL, unread_count INTEGER NOT NULL DEFAULT 0, summary TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE (tenant_id,id),
+  FOREIGN KEY (tenant_id,contact_id) REFERENCES contacts(tenant_id,id) ON DELETE CASCADE
+);
+
+CREATE TABLE ai_generations (
+  id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL, conversation_id TEXT NOT NULL, user_message_id TEXT NOT NULL,
+  provider TEXT NOT NULL, model TEXT NOT NULL, prompt TEXT NOT NULL, result TEXT,
+  sources_json TEXT NOT NULL DEFAULT '[]', input_tokens INTEGER, output_tokens INTEGER,
+  estimated_cost_cents INTEGER, status TEXT NOT NULL CHECK (status IN ('pending','complete','error','blocked')),
+  error TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE (tenant_id,id),
+  FOREIGN KEY (tenant_id,conversation_id) REFERENCES conversations(tenant_id,id) ON DELETE CASCADE
+);
+
+CREATE TABLE messages (
+  id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL, conversation_id TEXT NOT NULL,
+  direction TEXT NOT NULL CHECK (direction IN ('inbound','outbound')),
+  sender_type TEXT NOT NULL CHECK (sender_type IN ('contact','ai','human','system')),
+  body TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'received' CHECK (status IN ('received','queued','sending','sent','delivered','read','failed','simulated')),
+  external_id TEXT, ai_provider TEXT, ai_model TEXT, input_tokens INTEGER, output_tokens INTEGER,
+  generation_id TEXT, rag_sources_json TEXT NOT NULL DEFAULT '[]', metadata_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL, UNIQUE (tenant_id,id), UNIQUE (tenant_id,external_id),
+  FOREIGN KEY (tenant_id,conversation_id) REFERENCES conversations(tenant_id,id) ON DELETE CASCADE
+);
+
+CREATE TABLE catalog_items (
+  id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL, name TEXT NOT NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('product','service')), category TEXT NOT NULL DEFAULT '',
+  description TEXT NOT NULL, price_cents INTEGER NOT NULL DEFAULT 0, currency TEXT NOT NULL DEFAULT 'COP',
+  duration_minutes INTEGER NOT NULL DEFAULT 0, bookable INTEGER NOT NULL DEFAULT 0,
+  active INTEGER NOT NULL DEFAULT 1, keywords TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE (tenant_id,id)
+);
+
+CREATE TABLE knowledge_sources (
+  id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL, title TEXT NOT NULL, content TEXT NOT NULL,
+  source_type TEXT NOT NULL CHECK (source_type IN ('manual','file')), file_name TEXT, object_key TEXT,
+  status TEXT NOT NULL DEFAULT 'ready' CHECK (status IN ('ready','processing','failed')),
+  created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE (tenant_id,id)
+);
+
+CREATE TABLE appointments (
+  id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL, contact_id TEXT NOT NULL, conversation_id TEXT,
+  catalog_item_id TEXT, service_name TEXT NOT NULL, starts_at TEXT NOT NULL, ends_at TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','confirmed','cancelled','completed','no_show')),
+  notes TEXT NOT NULL DEFAULT '', created_by TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+  UNIQUE (tenant_id,id),
+  FOREIGN KEY (tenant_id,contact_id) REFERENCES contacts(tenant_id,id) ON DELETE CASCADE,
+  FOREIGN KEY (tenant_id,conversation_id) REFERENCES conversations(tenant_id,id) ON DELETE RESTRICT,
+  FOREIGN KEY (tenant_id,catalog_item_id) REFERENCES catalog_items(tenant_id,id) ON DELETE RESTRICT
+);
+
+CREATE TABLE appointment_slots (
+  tenant_id TEXT NOT NULL, slot_start TEXT NOT NULL, appointment_id TEXT NOT NULL, created_at TEXT NOT NULL,
+  PRIMARY KEY (tenant_id,slot_start),
+  FOREIGN KEY (tenant_id,appointment_id) REFERENCES appointments(tenant_id,id) ON DELETE CASCADE
+);
+
+CREATE TABLE calendar_blackouts (
+  id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL, starts_at TEXT NOT NULL, ends_at TEXT NOT NULL,
+  reason TEXT NOT NULL DEFAULT '', created_by TEXT NOT NULL, created_at TEXT NOT NULL,
+  CHECK (ends_at > starts_at), UNIQUE (tenant_id,id)
+);
+
+CREATE TABLE audit_logs (
+  id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL, user_id TEXT, action TEXT NOT NULL,
+  entity_type TEXT NOT NULL, entity_id TEXT, detail TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL
+);
+
+CREATE TABLE knowledge_chunks (
+  id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL, source_id TEXT NOT NULL, chunk_index INTEGER NOT NULL,
+  content TEXT NOT NULL, token_estimate INTEGER NOT NULL DEFAULT 0, embedding_json TEXT,
+  embedding_provider TEXT, embedding_model TEXT, embedding_dimensions INTEGER,
+  embedding_version INTEGER NOT NULL DEFAULT 0, vector_id TEXT,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','ready','failed','stale')),
+  error TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE (tenant_id,source_id,chunk_index),
+  FOREIGN KEY (tenant_id,source_id) REFERENCES knowledge_sources(tenant_id,id) ON DELETE CASCADE
+);
+
+CREATE TABLE catalog_chunks (
+  id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL, catalog_item_id TEXT NOT NULL, content TEXT NOT NULL,
+  embedding_json TEXT, embedding_provider TEXT, embedding_model TEXT, embedding_dimensions INTEGER,
+  embedding_version INTEGER NOT NULL DEFAULT 0, vector_id TEXT,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','ready','failed','stale')),
+  error TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE (tenant_id,catalog_item_id),
+  FOREIGN KEY (tenant_id,catalog_item_id) REFERENCES catalog_items(tenant_id,id) ON DELETE CASCADE
+);
+
+CREATE TABLE embedding_jobs (
+  id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL, source_id TEXT, catalog_item_id TEXT, reason TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','running','complete','failed')),
+  total_chunks INTEGER NOT NULL DEFAULT 0, processed_chunks INTEGER NOT NULL DEFAULT 0,
+  error TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+);
+
+CREATE TABLE privacy_requests (
+  id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL, contact_id TEXT,
+  request_type TEXT NOT NULL CHECK (request_type IN ('tenant_export','contact_export','contact_delete')),
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','processing','complete','failed')),
+  requested_by TEXT NOT NULL, artifact_key TEXT, error TEXT, created_at TEXT NOT NULL, completed_at TEXT
+);
+
+CREATE TABLE outbox_events (
+  id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL, event_type TEXT NOT NULL, aggregate_id TEXT,
+  payload_json TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','published','failed')),
+  attempts INTEGER NOT NULL DEFAULT 0, available_at TEXT NOT NULL, last_error TEXT,
+  created_at TEXT NOT NULL, published_at TEXT
+);
+
+CREATE INDEX idx_contacts_tenant_last_contact ON contacts(tenant_id,last_contact_at DESC);
+CREATE INDEX idx_conversations_tenant_last_message ON conversations(tenant_id,last_message_at DESC);
+CREATE INDEX idx_messages_tenant_conversation_created ON messages(tenant_id,conversation_id,created_at);
+CREATE INDEX idx_generations_tenant_created ON ai_generations(tenant_id,created_at DESC);
+CREATE INDEX idx_catalog_tenant_active ON catalog_items(tenant_id,active,name);
+CREATE INDEX idx_knowledge_tenant_updated ON knowledge_sources(tenant_id,updated_at DESC);
+CREATE INDEX idx_appointments_tenant_start ON appointments(tenant_id,starts_at);
+CREATE INDEX idx_blackouts_tenant_start ON calendar_blackouts(tenant_id,starts_at);
+CREATE INDEX idx_audit_tenant_created ON audit_logs(tenant_id,created_at DESC);
+CREATE INDEX idx_chunks_tenant_source ON knowledge_chunks(tenant_id,source_id,status);
+CREATE INDEX idx_catalog_chunks_tenant_item ON catalog_chunks(tenant_id,catalog_item_id,status);
+CREATE INDEX idx_embedding_jobs_tenant_status ON embedding_jobs(tenant_id,status,created_at DESC);
+CREATE INDEX idx_privacy_requests_tenant_status ON privacy_requests(tenant_id,status,created_at DESC);
+CREATE INDEX idx_outbox_pending ON outbox_events(status,available_at);
+
+PRAGMA optimize;

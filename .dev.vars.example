@@ -1,0 +1,27 @@
+# start-savia.ps1 crea .dev.vars con secretos aleatorios si no existe.
+# Este archivo es solo una referencia. Nunca guardes credenciales reales en Git.
+APP_URL=http://localhost:3000
+BETTER_AUTH_URL=http://localhost:3000
+BETTER_AUTH_SECRET=<SECRETO_ALEATORIO_DE_AL_MENOS_32_CARACTERES>
+# Debe ser Base64 de 32 bytes. No la cambies después de guardar proveedores cifrados.
+SAVIA_MASTER_KEY=<CLAVE_BASE64_DE_32_BYTES>
+# Producción: usa un anillo versionado para rotación sin perder secretos.
+# SAVIA_MASTER_KEYS_JSON={"2026-08":"<CLAVE_BASE64_32_BYTES>"}
+# SAVIA_ACTIVE_MASTER_KEY_ID=2026-08
+SAVIA_ENVIRONMENT=local
+SAVIA_REQUIRE_DEDICATED_TENANT_DATA=false
+SAVIA_ALLOW_RUNTIME_MIGRATIONS=true
+# Solo para el primer superadministrador remoto de producción; retirar después.
+# SAVIA_BOOTSTRAP_TOKEN=<TOKEN_ALEATORIO_LARGO_Y_TEMPORAL>
+
+# Compatibilidad heredada con un motor local. La configuración nueva se realiza
+# en Administración global → Proveedores IA y se asigna por tenant.
+LOCAL_AI_BASE_URL=
+LOCAL_AI_MODEL=
+LOCAL_AI_API_KEY=
+
+# Opcional. Turnstile solo se activa cuando ambas llaves están presentes.
+TURNSTILE_SECRET_KEY=
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=
+
+# WhatsApp, correo y proveedores IA se configuran cifrados desde /platform.

@@ -1,0 +1,37 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "savia-app-production",
+  "compatibility_date": "2026-08-25",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "../dist/server/index.js",
+  "no_bundle": true,
+  "assets": { "directory": "../dist/client" },
+  "rules": [{ "type": "ESModule", "globs": ["**/*.js", "**/*.mjs"] }],
+  "vars": {
+    "SAVIA_ENVIRONMENT": "production",
+    "SAVIA_REQUIRE_DEDICATED_TENANT_DATA": "true",
+    "SAVIA_ALLOW_RUNTIME_MIGRATIONS": "false",
+    "BETTER_AUTH_URL": "https://app.example.com",
+    "APP_URL": "https://app.example.com",
+    "NEXT_PUBLIC_TURNSTILE_SITE_KEY": "REPLACE_WITH_SITE_KEY"
+  },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "savia-control-production", "database_id": "REPLACE_CONTROL_D1_ID" },
+    { "binding": "TENANT_EXAMPLE_DB", "database_name": "savia-tenant-example-production", "database_id": "REPLACE_TENANT_D1_ID" }
+  ],
+  "r2_buckets": [
+    { "binding": "FILES", "bucket_name": "savia-local-fallback-disabled" },
+    { "binding": "TENANT_EXAMPLE_FILES", "bucket_name": "savia-tenant-example-production" }
+  ],
+  "vectorize": [
+    { "binding": "TENANT_EXAMPLE_VECTORS", "index_name": "savia-tenant-example-v1" }
+  ],
+  "queues": {
+    "producers": [{ "binding": "SAVIA_EVENTS", "queue": "savia-events-production" }]
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+    "logs": { "enabled": true, "invocation_logs": true }
+  }
+}

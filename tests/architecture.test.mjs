@@ -1,0 +1,132 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { DatabaseSync } from 'node:sqlite';
+import test from 'node:test';
+
+const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
+
+test('producción falla cerrada si un tenant no tiene recursos dedicados', async () => {
+  const source = await read('lib/tenant-database.ts');
+  assert.match(source, /SAVIA_ENVIRONMENT === 'production'/);
+  assert.match(source, /SAVIA_REQUIRE_DEDICATED_TENANT_DATA/);
+  assert.match(source, /no está aprovisionado en recursos dedicados/);
+  assert.match(source, /no tiene un registro de recursos dedicados/);
+  assert.match(source, /índice vectorial dedicado/);
+});
+
+test('los servicios de negocio usan el plano de datos del tenant', async () => {
+  for (const path of [
+    'lib/repository.ts',
+    'lib/rag.ts',
+    'lib/assistant.ts',
+    'lib/conversation-service.ts',
+  ]) {
+    const source = await read(path);
+    assert.match(source, /tenantDb(All|First|Run|Batch)/, `${path} debe usar acceso por tenant`);
+    assert.doesNotMatch(source, /from '@\/lib\/database'.*db(All|First|Run|Batch)/s, `${path} no debe saltar el plano de datos`);
+  }
+});
+
+test('el webhook verifica firma antes de interpretar el JSON', async () => {
+  const source = await read('app/api/webhooks/whatsapp/[webhookKey]/route.ts');
+  const signature = source.indexOf('verifyMetaSignature');
+  const parse = source.indexOf('JSON.parse');
+  assert.ok(signature >= 0 && parse > signature);
+  assert.match(source, /integration_events/);
+  assert.match(source, /SAVIA_EVENTS/);
+  assert.match(source, /MAX_WEBHOOK_BYTES/);
+  assert.match(source, /readBodyWithLimit/);
+});
+
+test('MFA, Turnstile y recuperación permanecen habilitados', async () => {
+  const auth = await read('lib/auth.ts');
+  assert.match(auth, /twoFactor\(/);
+  assert.match(auth, /accountLockout/);
+  assert.match(auth, /cloudflare-turnstile/);
+  assert.match(auth, /sendResetPassword/);
+  assert.match(auth, /revokeSessionsOnPasswordReset: true/);
+  assert.match(auth, /BETTER_AUTH_SECRET de al menos 32 caracteres es obligatorio en producción/);
+  assert.match(auth, /cf-connecting-ip/);
+  const actions = await read('app/auth-actions.ts');
+  assert.match(actions, /SAVIA_BOOTSTRAP_TOKEN/);
+  assert.match(actions, /constantTimeEqual/);
+});
+
+test('los encabezados de seguridad se aplican en la capa de petición', async () => {
+  const proxy = await read('proxy.ts');
+  const headers = await read('lib/security-headers.ts');
+  assert.match(proxy, /securityHeaders\(\)/);
+  assert.match(proxy, /matcher: '\/:path\*'/);
+  assert.match(headers, /Content-Security-Policy/);
+  assert.match(headers, /frame-ancestors 'none'/);
+  assert.match(headers, /Strict-Transport-Security/);
+});
+
+test('migraciones de control y tenant incluyen las defensas críticas', async () => {
+  const controlBase = await read('migrations/control/0001_control_plane.sql');
+  const control = await read('migrations/control/0002_production_control_plane.sql');
+  const tenant = await read('migrations/tenant/0001_data_plane.sql');
+  assert.match(controlBase, /CREATE TABLE auth_users/);
+  assert.doesNotMatch(controlBase, /CREATE TABLE (contacts|messages|appointments)/);
+  for (const table of ['tenant_resources', 'tenant_channel_settings', 'integration_events', 'tenant_retention_settings']) {
+    assert.match(control, new RegExp(`CREATE TABLE ${table}`));
+  }
+  for (const table of ['appointment_slots', 'calendar_blackouts', 'catalog_chunks', 'privacy_requests', 'outbox_events']) {
+    assert.match(tenant, new RegExp(`CREATE TABLE ${table}`));
+  }
+});
+
+test('las migraciones crean planos nuevos, completos y físicamente separados', async () => {
+  const control = new DatabaseSync(':memory:');
+  control.exec(await read('migrations/control/0001_control_plane.sql'));
+  control.exec(await read('migrations/control/0002_production_control_plane.sql'));
+  assert.equal(control.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='tenant_resources'").get()?.name, 'tenant_resources');
+  assert.equal(control.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='messages'").get(), undefined);
+  assert.ok(control.prepare("SELECT name FROM pragma_table_info('tenant_ai_settings') WHERE name='monthly_cost_limit_cents'").get());
+  control.close();
+
+  const tenant = new DatabaseSync(':memory:');
+  tenant.exec(await read('migrations/tenant/0001_data_plane.sql'));
+  assert.equal(tenant.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='messages'").get()?.name, 'messages');
+  assert.equal(tenant.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='auth_users'").get(), undefined);
+  tenant.close();
+});
+
+test('producción no crea ni modifica el esquema durante una petición', async () => {
+  const source = await read('lib/database.ts');
+  const guard = source.indexOf('if (!allowRuntimeMigrations)');
+  const schema = source.indexOf('const schemaStatements');
+  assert.ok(guard >= 0 && schema > guard);
+  assert.match(source, /SAVIA_ALLOW_RUNTIME_MIGRATIONS/);
+});
+
+test('la salida de WhatsApp usa outbox y reclama el mensaje antes de enviarlo', async () => {
+  const actions = await read('app/actions.ts');
+  const conversation = await read('lib/conversation-service.ts');
+  const consumer = await read('workers/events-consumer.ts');
+  const outbox = await read('lib/outbox.ts');
+  assert.ok(actions.indexOf('INSERT INTO messages') < actions.indexOf('await deliverPersistedWhatsAppText'));
+  assert.match(conversation, /whatsappOutboxItem/);
+  assert.match(outbox, /status = 'pending'/);
+  assert.match(outbox, /SAVIA_EVENTS\.send/);
+  assert.match(consumer, /status = 'sending'/);
+  assert.match(consumer, /message\.attempts >= 5/);
+});
+
+test('privacidad elimina también generaciones y payloads salientes', async () => {
+  const actions = await read('app/actions.ts');
+  const retention = await read('lib/retention.ts');
+  assert.match(actions, /UPDATE ai_generations/);
+  assert.match(actions, /DELETE FROM outbox_events/);
+  assert.match(retention, /DELETE FROM ai_generations/);
+  assert.match(retention, /DELETE FROM outbox_events/);
+});
+
+test('los manifiestos disponibles son plantillas y no publican el servicio', async () => {
+  const app = await read('cloudflare/wrangler.app.production.example.jsonc');
+  assert.match(app, /REPLACE_CONTROL_D1_ID/);
+  assert.match(app, /SAVIA_REQUIRE_DEDICATED_TENANT_DATA/);
+  assert.match(app, /\.\.\/dist\/server\/index\.js/);
+  assert.match(app, /\.\.\/dist\/client/);
+  assert.match(app, /"no_bundle": true/);
+});

@@ -1,0 +1,15 @@
+{
+  "controlDatabaseName": "savia-control-production",
+  "backupBucketName": "savia-backups-production",
+  "tenants": [
+    {
+      "slug": "example",
+      "databaseName": "savia-tenant-example-production",
+      "databaseBinding": "TENANT_EXAMPLE_DB",
+      "bucketName": "savia-tenant-example-production",
+      "filesBinding": "TENANT_EXAMPLE_FILES",
+      "vectorIndexName": "savia-tenant-example-v1",
+      "vectorBinding": "TENANT_EXAMPLE_VECTORS"
+    }
+  ]
+}

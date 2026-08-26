@@ -1,0 +1,12 @@
+allowBuilds:
+  '@prisma/client': set this to true or false
+  better-sqlite3: set this to true or false
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+  workerd: true
+verifyDepsBeforeRun: false
+overrides:
+  esbuild: 0.25.12
+  postcss: 8.5.26
+  sharp: 0.35.0
