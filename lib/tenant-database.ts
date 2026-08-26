@@ -1,5 +1,6 @@
 import { env } from 'cloudflare:workers';
 import { dbFirst, dbRun, ensureDatabase, getDatabase } from '@/lib/database';
+import { allowsRuntimeMigrations, requiresDedicatedTenantData } from '@/lib/environment';
 import { TENANT_SCHEMA_STATEMENTS } from '@/lib/tenant-schema';
 
 export type TenantIsolationMode = 'shared_local' | 'dedicated';
@@ -32,10 +33,6 @@ function dynamicBinding<T>(name: string | null): T | null {
   return ((env as unknown as Record<string, unknown>)[name] as T | undefined) ?? null;
 }
 
-function strictTenantIsolation(): boolean {
-  return env.SAVIA_REQUIRE_DEDICATED_TENANT_DATA === 'true' || env.SAVIA_ENVIRONMENT === 'production';
-}
-
 export async function getTenantResources(tenantId: string): Promise<TenantResources> {
   await ensureDatabase();
   let row = await dbFirst<ResourceRow>(
@@ -46,7 +43,7 @@ export async function getTenantResources(tenantId: string): Promise<TenantResour
   );
 
   if (!row) {
-    if (strictTenantIsolation()) {
+    if (requiresDedicatedTenantData()) {
       throw new Error(`El tenant ${tenantId} no tiene un registro de recursos dedicados.`);
     }
     const now = new Date().toISOString();
@@ -91,7 +88,7 @@ export async function getTenantDatabase(tenantId: string): Promise<D1Database> {
     return dedicated;
   }
 
-  if (strictTenantIsolation()) {
+  if (requiresDedicatedTenantData()) {
     throw new Error(
       `El plano de datos del cliente ${tenantId} no está aprovisionado en recursos dedicados.`,
     );
@@ -110,7 +107,7 @@ export async function getTenantFiles(tenantId: string): Promise<R2Bucket> {
   if (resources.isolationMode === 'dedicated' && resources.provisioningStatus === 'ready' && dedicated) {
     return dedicated;
   }
-  if (strictTenantIsolation()) {
+  if (requiresDedicatedTenantData()) {
     throw new Error(`El almacenamiento dedicado del cliente ${tenantId} no está disponible.`);
   }
   if (!env.FILES) throw new Error('El almacenamiento local FILES no está disponible.');
@@ -120,7 +117,7 @@ export async function getTenantFiles(tenantId: string): Promise<R2Bucket> {
 export async function getTenantVectorIndex(tenantId: string): Promise<VectorizeIndex | null> {
   const resources = await getTenantResources(tenantId);
   const index = dynamicBinding<VectorizeIndex>(resources.vectorBinding);
-  if (strictTenantIsolation()) {
+  if (requiresDedicatedTenantData()) {
     if (
       resources.isolationMode !== 'dedicated'
       || resources.provisioningStatus !== 'ready'
@@ -174,8 +171,7 @@ async function ensureTenantSchema(database: D1Database): Promise<void> {
   if (pending) return pending;
 
   pending = (async () => {
-    const allowRuntimeMigrations = env.SAVIA_ALLOW_RUNTIME_MIGRATIONS === 'true'
-      || env.SAVIA_ENVIRONMENT !== 'production';
+    const allowRuntimeMigrations = allowsRuntimeMigrations();
     if (allowRuntimeMigrations) {
       await database.batch(TENANT_SCHEMA_STATEMENTS.map((statement) => database.prepare(statement)));
       await ensureTenantColumn(database, 'knowledge_chunks', 'vector_id', 'TEXT');

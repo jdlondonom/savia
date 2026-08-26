@@ -1,4 +1,5 @@
 import { env } from 'cloudflare:workers';
+import { isDeployedEnvironment } from '@/lib/environment';
 import { getWhatsAppChannelSummary } from '@/lib/whatsapp-config';
 import type { RuntimeStatus } from '@/lib/types';
 
@@ -26,7 +27,7 @@ export async function getRuntimeStatus(
     aiLabel: tenantAi?.label ?? (ai ? `Modelo local · ${ai.model}` : 'Motor RAG local de respaldo'),
     whatsappConfigured: whatsapp.configured,
     whatsappLabel: whatsapp.label,
-    persistenceLabel: env.SAVIA_ENVIRONMENT === 'production'
+    persistenceLabel: isDeployedEnvironment()
       ? 'Datos y archivos dedicados por cliente'
       : 'Base local D1 + archivos R2',
     webhookPath: whatsapp.webhookPath,

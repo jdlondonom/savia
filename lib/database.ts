@@ -1,4 +1,5 @@
 import { env } from 'cloudflare:workers';
+import { allowsRuntimeMigrations } from '@/lib/environment';
 
 let initialization: Promise<void> | null = null;
 
@@ -39,8 +40,7 @@ export function ensureDatabase(): Promise<void> {
 
 async function initializeDatabase(): Promise<void> {
   const db = getDatabase();
-  const allowRuntimeMigrations = env.SAVIA_ALLOW_RUNTIME_MIGRATIONS === 'true'
-    || env.SAVIA_ENVIRONMENT !== 'production';
+  const allowRuntimeMigrations = allowsRuntimeMigrations();
 
   if (!allowRuntimeMigrations) {
     await db.prepare(

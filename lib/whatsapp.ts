@@ -1,4 +1,5 @@
 import { env } from 'cloudflare:workers';
+import { isDeployedEnvironment } from '@/lib/environment';
 import { getWhatsAppChannelByTenantId } from '@/lib/whatsapp-config';
 import { finishLocalOutboxEvent, publishTenantOutboxEvent } from '@/lib/outbox';
 import { tenantDbRun } from '@/lib/tenant-database';
@@ -62,7 +63,7 @@ export async function deliverWhatsAppTextNow(input: {
   const config = await getWhatsAppChannelByTenantId(input.tenantId);
 
   if (!config) {
-    if (env.SAVIA_ENVIRONMENT === 'production') {
+    if (isDeployedEnvironment()) {
       return {
         externalId: null,
         status: 'failed',

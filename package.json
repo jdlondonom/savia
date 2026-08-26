@@ -18,6 +18,9 @@
     "test:load": "node tests/load-smoke.mjs",
     "test": "pnpm test:unit && pnpm test:architecture",
     "verify": "tsc --noEmit && eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern .vinext --ignore-pattern .wrangler && pnpm test && vinext build",
+    "deploy:staging:app": "wrangler deploy --config cloudflare/wrangler.app.staging.jsonc",
+    "deploy:staging:events": "wrangler deploy --config cloudflare/wrangler.events.staging.jsonc",
+    "deploy:staging:maintenance": "wrangler deploy --config cloudflare/wrangler.maintenance.staging.jsonc",
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
@@ -28,13 +31,13 @@
     "better-auth": "^1.7.1",
     "drizzle-orm": "0.45.2",
     "next": "16.2.11",
-    "react": "19.2.6",
-    "react-dom": "19.2.6",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
     "react-qr-code": "^2.2.0"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "1.37.1",
-    "@cloudflare/workers-types": "4.20260515.1",
+    "@cloudflare/vite-plugin": "1.53.1",
+    "@cloudflare/workers-types": "5.20260825.1",
     "@openai/sites-vite-plugin": "^0.1.0 || ^0.2.0",
     "@tailwindcss/postcss": "4.2.1",
     "@types/node": "22.19.19",
@@ -45,12 +48,12 @@
     "drizzle-kit": "0.31.10",
     "eslint": "9.39.4",
     "eslint-config-next": "16.2.11",
-    "react-server-dom-webpack": "19.2.6",
+    "react-server-dom-webpack": "19.2.8",
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3",
     "vinext": "1.0.0-beta.3",
-    "vite": "8.0.13",
-    "wrangler": "4.92.0"
+    "vite": "8.0.16",
+    "wrangler": "4.126.0"
   },
   "type": "module"
 }

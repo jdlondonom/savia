@@ -5,6 +5,8 @@ Los archivos de esta carpeta son referencias revisables; no están vinculados a 
 | Archivo | Uso |
 |---|---|
 | `wrangler.app.staging.example.jsonc` | Aplicación de staging |
+| `wrangler.events.staging.example.jsonc` | Consumidor, DLQ y Durable Object de staging |
+| `wrangler.maintenance.staging.example.jsonc` | Limpieza programada de staging |
 | `wrangler.app.production.example.jsonc` | Aplicación de producción |
 | `wrangler.events.production.example.jsonc` | Consumidor, DLQ y Durable Object |
 | `wrangler.maintenance.production.example.jsonc` | Limpieza programada |
@@ -20,6 +22,7 @@ Los archivos de esta carpeta son referencias revisables; no están vinculados a 
 - Ejecutar `scripts/assert-production-config.mjs` antes de publicar.
 - Ejecutar `pnpm build` antes de usar las plantillas de aplicación: el artefacto esperado es `dist/server/index.js` y los recursos estáticos quedan en `dist/client`.
 - Guardar secretos con el mecanismo de secretos de Cloudflare.
+- Tratar staging como un entorno público: token de arranque, secreto de autenticación fuerte, aislamiento físico y migraciones previas al despliegue.
 - No usar estas plantillas como evidencia de que un despliegue ya existe.
 
 ## Workers

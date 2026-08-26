@@ -180,3 +180,9 @@ No se deben copiar mensajes personales a tickets, chats o repositorios durante l
 - Política, términos, DPA y subencargados revisados.
 - Inventario y rotación de secretos documentados.
 - Sin datos de demostración en producción.
+
+## Estado de dependencias de compilación
+
+La auditoría del artefacto desplegable (`pnpm audit --prod`) no reporta vulnerabilidades conocidas al 25 de agosto de 2026. La auditoría completa conserva temporalmente dos avisos altos de denegación de servicio en `image-size@2.0.2`, una dependencia indirecta de compilación de Vinext, porque la versión corregida `2.0.3` aún no está publicada en npm.
+
+La exposición queda acotada: `image-size` solo procesa imágenes confiables del repositorio durante el build, no recibe archivos de usuarios y no aparece en `dist/`. Se debe retirar esta excepción y actualizar tan pronto exista una versión corregida; si cambia cualquiera de esas condiciones, se bloquea la publicación.

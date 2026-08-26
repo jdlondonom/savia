@@ -3,6 +3,7 @@ import { env } from 'cloudflare:workers';
 import { AuthShell } from '@/app/auth-shell';
 import { platformSetupRequired } from '@/app/auth-actions';
 import { SetupForm } from '@/app/setup/setup-form';
+import { isDeployedEnvironment } from '@/lib/environment';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +17,7 @@ export default async function SetupPage() {
     >
       <SetupForm
         turnstileSiteKey={env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() || null}
-        requiresBootstrapToken={env.SAVIA_ENVIRONMENT === 'production'}
+        requiresBootstrapToken={isDeployedEnvironment()}
       />
     </AuthShell>
   );

@@ -3,13 +3,14 @@ import { betterAuth } from 'better-auth';
 import { APIError, createAuthMiddleware } from 'better-auth/api';
 import { captcha, twoFactor } from 'better-auth/plugins';
 import { sendPasswordResetEmail } from '@/lib/email';
+import { isDeployedEnvironment } from '@/lib/environment';
 
 const localBaseUrl = 'http://localhost:3000';
 
 function createAuthInstance(disableSignUp: boolean) {
   const configuredSecret = env.BETTER_AUTH_SECRET?.trim();
-  if (env.SAVIA_ENVIRONMENT === 'production' && (!configuredSecret || configuredSecret.length < 32)) {
-    throw new Error('BETTER_AUTH_SECRET de al menos 32 caracteres es obligatorio en producción.');
+  if (isDeployedEnvironment() && (!configuredSecret || configuredSecret.length < 32)) {
+    throw new Error('BETTER_AUTH_SECRET de al menos 32 caracteres es obligatorio fuera del entorno local.');
   }
   return betterAuth({
   appName: 'Savia',

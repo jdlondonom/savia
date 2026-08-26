@@ -7,8 +7,10 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('producción falla cerrada si un tenant no tiene recursos dedicados', async () => {
   const source = await read('lib/tenant-database.ts');
-  assert.match(source, /SAVIA_ENVIRONMENT === 'production'/);
-  assert.match(source, /SAVIA_REQUIRE_DEDICATED_TENANT_DATA/);
+  const environment = await read('lib/environment.ts');
+  assert.match(source, /requiresDedicatedTenantData/);
+  assert.match(environment, /SAVIA_ENVIRONMENT/);
+  assert.match(environment, /SAVIA_REQUIRE_DEDICATED_TENANT_DATA/);
   assert.match(source, /no está aprovisionado en recursos dedicados/);
   assert.match(source, /no tiene un registro de recursos dedicados/);
   assert.match(source, /índice vectorial dedicado/);
@@ -45,7 +47,7 @@ test('MFA, Turnstile y recuperación permanecen habilitados', async () => {
   assert.match(auth, /cloudflare-turnstile/);
   assert.match(auth, /sendResetPassword/);
   assert.match(auth, /revokeSessionsOnPasswordReset: true/);
-  assert.match(auth, /BETTER_AUTH_SECRET de al menos 32 caracteres es obligatorio en producción/);
+  assert.match(auth, /BETTER_AUTH_SECRET de al menos 32 caracteres es obligatorio fuera del entorno local/);
   assert.match(auth, /cf-connecting-ip/);
   const actions = await read('app/auth-actions.ts');
   assert.match(actions, /SAVIA_BOOTSTRAP_TOKEN/);
@@ -94,10 +96,21 @@ test('las migraciones crean planos nuevos, completos y físicamente separados', 
 
 test('producción no crea ni modifica el esquema durante una petición', async () => {
   const source = await read('lib/database.ts');
+  const environment = await read('lib/environment.ts');
   const guard = source.indexOf('if (!allowRuntimeMigrations)');
   const schema = source.indexOf('const schemaStatements');
   assert.ok(guard >= 0 && schema > guard);
-  assert.match(source, /SAVIA_ALLOW_RUNTIME_MIGRATIONS/);
+  assert.match(source, /allowsRuntimeMigrations/);
+  assert.match(environment, /SAVIA_ALLOW_RUNTIME_MIGRATIONS/);
+});
+
+test('staging aplica controles de despliegue y no se comporta como local', async () => {
+  const environment = await read('lib/environment.ts');
+  const authActions = await read('app/auth-actions.ts');
+  const setup = await read('app/setup/page.tsx');
+  assert.match(environment, /!== 'local'/);
+  assert.match(authActions, /isDeployedEnvironment/);
+  assert.match(setup, /isDeployedEnvironment/);
 });
 
 test('la salida de WhatsApp usa outbox y reclama el mensaje antes de enviarlo', async () => {

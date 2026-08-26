@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import { env } from 'cloudflare:workers';
 import { provisionCredentialUser } from '@/lib/auth';
 import { dbBatch, dbFirst, dbRun, ensureDatabase } from '@/lib/database';
+import { isDeployedEnvironment } from '@/lib/environment';
 
 export type InvitationPreview = {
   email: string;
@@ -181,7 +182,7 @@ async function removeProvisionedAuthUser(userId: string): Promise<void> {
 }
 
 async function requireBootstrapRequest(providedToken?: string): Promise<void> {
-  if (env.SAVIA_ENVIRONMENT === 'production') {
+  if (isDeployedEnvironment()) {
     const expectedToken = env.SAVIA_BOOTSTRAP_TOKEN?.trim();
     if (!expectedToken || expectedToken.length < 32) {
       throw new Error('SAVIA_BOOTSTRAP_TOKEN no está configurado de forma segura.');

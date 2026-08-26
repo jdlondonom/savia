@@ -1,9 +1,9 @@
 'use server';
 
-import { env } from 'cloudflare:workers';
 import { getAppContext, getContextForTenantSlug, setTenantCookie } from '@/lib/context';
 import { receiveInboundMessage } from '@/lib/conversation-service';
 import { dbBatch, dbFirst, dbRun } from '@/lib/database';
+import { requiresDedicatedTenantData } from '@/lib/environment';
 import { getDashboardData } from '@/lib/repository';
 import { indexCatalogItem, indexKnowledgeSource } from '@/lib/rag';
 import { whatsappOutboxItem } from '@/lib/outbox';
@@ -47,6 +47,7 @@ export async function createTenantAction(input: {
 
   const tenantId = `tenant_${crypto.randomUUID()}`;
   const now = new Date().toISOString();
+  const dedicated = requiresDedicatedTenantData();
   const hours = JSON.stringify({
     lunes: { open: '08:00', close: '18:00', enabled: true },
     martes: { open: '08:00', close: '18:00', enabled: true },
@@ -73,8 +74,8 @@ export async function createTenantAction(input: {
             VALUES (?, ?, ?, ?, ?)`,
       bindings: [
         tenantId,
-        env.SAVIA_ENVIRONMENT === 'production' ? 'dedicated' : 'shared_local',
-        env.SAVIA_ENVIRONMENT === 'production' ? 'pending' : 'local',
+        dedicated ? 'dedicated' : 'shared_local',
+        dedicated ? 'pending' : 'local',
         now,
         now,
       ],

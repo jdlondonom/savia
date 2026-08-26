@@ -5,6 +5,7 @@ import { generateText } from 'ai';
 import { createTenantLanguageModel, embedTenantTexts, getTenantAiRuntime } from '@/lib/ai-config';
 import { dbAll, dbBatch, dbFirst, dbRun } from '@/lib/database';
 import { sendInvitationEmail, sendTransactionalEmail } from '@/lib/email';
+import { requiresDedicatedTenantData } from '@/lib/environment';
 import {
   getPlatformData,
   type AccountStatus,
@@ -62,6 +63,7 @@ export async function createPlatformTenantAction(input: {
 
   const id = `tenant_${crypto.randomUUID()}`;
   const now = new Date().toISOString();
+  const dedicated = requiresDedicatedTenantData();
   await dbBatch([
     {
       sql: `INSERT INTO tenants
@@ -77,8 +79,8 @@ export async function createPlatformTenantAction(input: {
             VALUES (?, ?, ?, ?, ?)`,
       bindings: [
         id,
-        env.SAVIA_ENVIRONMENT === 'production' ? 'dedicated' : 'shared_local',
-        env.SAVIA_ENVIRONMENT === 'production' ? 'pending' : 'local',
+        dedicated ? 'dedicated' : 'shared_local',
+        dedicated ? 'pending' : 'local',
         now,
         now,
       ],
