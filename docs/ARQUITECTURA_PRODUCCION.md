@@ -143,13 +143,21 @@ Listo en el código:
 - seguridad, cuotas, privacidad y observabilidad;
 - plantillas de staging/producción.
 
-No realizado:
+Desplegado en staging el 25 de agosto de 2026:
 
-- creación de cuenta, recursos, dominios o secretos;
-- despliegue de staging o producción;
+- Workers de aplicación, eventos y mantenimiento;
+- D1 de control y D1 inicial de tenant con migraciones;
+- Vectorize, Queue, DLQ y Durable Object;
+- secretos de plataforma cifrados y Turnstile activo;
+- endpoint público de salud, observabilidad y tareas programadas.
+
+Pendiente:
+
+- activación de R2 y creación de buckets dedicados;
+- alta del primer superadministrador y comprobación manual del MFA;
 - configuración de Meta y proveedores;
 - pruebas pagadas/reales;
-- reglas WAF y alertas;
+- dominio comercial, producción, reglas WAF personalizadas y alertas;
 - prueba de restauración con recursos reales.
 
-Nada de lo anterior debe ejecutarse hasta recibir autorización directa para publicar.
+Staging no equivale a aceptación de producción. El detalle operativo está en [ESTADO_STAGING_CLOUDFLARE.md](ESTADO_STAGING_CLOUDFLARE.md).

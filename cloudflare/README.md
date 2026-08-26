@@ -1,6 +1,6 @@
 # Plantillas de Cloudflare
 
-Los archivos de esta carpeta son referencias revisables; no están vinculados a una cuenta y no despliegan Savia.
+Los archivos `*.example.jsonc` de esta carpeta son referencias revisables; no están vinculados a una cuenta y no despliegan Savia. Las configuraciones reales del staging publicado se crean sin el sufijo `.example`, permanecen excluidas de Git y se documentan sin secretos en [ESTADO_STAGING_CLOUDFLARE.md](../docs/ESTADO_STAGING_CLOUDFLARE.md).
 
 | Archivo | Uso |
 |---|---|
@@ -23,7 +23,7 @@ Los archivos de esta carpeta son referencias revisables; no están vinculados a 
 - Ejecutar `pnpm build` antes de usar las plantillas de aplicación: el artefacto esperado es `dist/server/index.js` y los recursos estáticos quedan en `dist/client`.
 - Guardar secretos con el mecanismo de secretos de Cloudflare.
 - Tratar staging como un entorno público: token de arranque, secreto de autenticación fuerte, aislamiento físico y migraciones previas al despliegue.
-- No usar estas plantillas como evidencia de que un despliegue ya existe.
+- No usar estas plantillas como evidencia de un despliegue; validar el inventario y la URL del ambiente correspondiente.
 
 ## Workers
 

@@ -2,7 +2,9 @@
 
 **Conversaciones que hacen crecer.**
 
-Savia es una plataforma multitenant de atención por WhatsApp con IA, RAG, CRM y agenda. Puede ejecutarse completamente en un PC para desarrollo y demostraciones; además, el código incluye una arquitectura preparada para producción en Cloudflare, pero **esta entrega no está publicada ni desplegada**.
+Savia es una plataforma multitenant de atención por WhatsApp con IA, RAG, CRM y agenda. Puede ejecutarse completamente en un PC para desarrollo y demostraciones. También existe un ambiente público de **staging** en Cloudflare para validación; producción y el dominio comercial todavía no están publicados.
+
+Estado de staging: [savia-app-staging.jdlondonom.workers.dev](https://savia-app-staging.jdlondonom.workers.dev). Consulta [el estado operativo y sus pendientes](docs/ESTADO_STAGING_CLOUDFLARE.md) antes de usarlo con datos reales.
 
 ## Inicio local
 
@@ -77,6 +79,7 @@ pnpm build
 - [Operación local paso a paso](docs/OPERACION_LOCAL.md)
 - [Arquitectura de producción](docs/ARQUITECTURA_PRODUCCION.md)
 - [Runbook de preparación y puesta en producción](docs/RUNBOOK_PRODUCCION.md)
+- [Estado del staging en Cloudflare](docs/ESTADO_STAGING_CLOUDFLARE.md)
 - [Seguridad, privacidad y recuperación](docs/SEGURIDAD_Y_PRIVACIDAD.md)
 - [Plantillas de Cloudflare](cloudflare/README.md)
 - [Marca, logo y paleta](docs/MARCA.md)
@@ -86,4 +89,4 @@ pnpm build
 
 Cloudflare puede alojar la aplicación y sus datos, pero no sustituye los servicios de negocio. Para una operación real se requieren una cuenta de Meta WhatsApp Business, credenciales de los proveedores de IA seleccionados y un proveedor de correo transaccional (Resend o Postmark). También se necesita un dominio administrado, reglas de seguridad, monitoreo y copias externas probadas.
 
-Los archivos bajo `cloudflare/*.example.jsonc` son exclusivamente plantillas. No contienen IDs ni secretos reales y no ejecutan despliegues.
+Los archivos bajo `cloudflare/*.example.jsonc` son exclusivamente plantillas. No contienen IDs ni secretos reales y no ejecutan despliegues. Las configuraciones reales usadas para staging permanecen excluidas de Git.

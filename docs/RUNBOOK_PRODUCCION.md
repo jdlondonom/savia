@@ -1,6 +1,6 @@
 # Runbook de preparación y puesta en producción
 
-Este documento es un procedimiento para una publicación futura. **No se ha ejecutado en esta entrega.**
+Este documento gobierna la preparación de staging y la publicación futura de producción. El staging inicial se ejecutó parcialmente el 25 de agosto de 2026; su estado y pendientes se registran en [ESTADO_STAGING_CLOUDFLARE.md](ESTADO_STAGING_CLOUDFLARE.md). **Producción no ha sido publicada.**
 
 ## 1. Condiciones de entrada
 

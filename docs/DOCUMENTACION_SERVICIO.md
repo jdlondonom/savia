@@ -2,15 +2,20 @@
 
 ## 1. Propósito y estado
 
-Savia es una plataforma SaaS multitenant para atención comercial por WhatsApp con IA, RAG, CRM y agenda. La aplicación está funcional en local y el repositorio incluye los componentes y plantillas para una futura operación en Cloudflare.
+Savia es una plataforma SaaS multitenant para atención comercial por WhatsApp con IA, RAG, CRM y agenda. La aplicación está funcional en local y dispone de un ambiente público de staging en Cloudflare para aceptación técnica.
 
 Estado de esta entrega:
 
 - ejecución local persistente en el PC;
-- arquitectura de producción implementada en código;
-- plantillas de recursos separadas para staging y producción;
-- integración real lista para configurarse con credenciales externas;
-- ningún recurso ni dominio de Cloudflare ha sido creado o publicado desde este proyecto.
+- staging publicado en `savia-app-staging.jdlondonom.workers.dev`;
+- Workers de aplicación, eventos y mantenimiento desplegados por separado;
+- D1 de control y de tenant, Vectorize, Queue, DLQ, Durable Object y Turnstile activos;
+- arquitectura y plantillas separadas para staging y producción;
+- R2 pendiente de activación porque requiere aceptar una suscripción con cobro por excedentes;
+- integraciones de Meta, IA y correo listas para recibir credenciales externas;
+- producción, dominio comercial, WAF personalizado, alertas y respaldo externo todavía pendientes.
+
+El inventario verificable y las limitaciones actuales están en [ESTADO_STAGING_CLOUDFLARE.md](ESTADO_STAGING_CLOUDFLARE.md).
 
 ## 2. Funcionalidades
 
@@ -268,8 +273,9 @@ El código no puede completar sin cuentas del propietario:
 - verificación y configuración de Meta WhatsApp Business;
 - llaves/modelos de IA;
 - dominio remitente y llave de Resend o Postmark;
-- cuenta, dominio, IDs y secretos de Cloudflare;
-- reglas WAF, alertas y destino externo de respaldo;
+- suscripción y buckets R2 de staging;
+- dominio comercial y ambiente de producción en Cloudflare;
+- reglas WAF personalizadas, alertas y destino externo de respaldo;
 - revisión legal y política de privacidad aplicables.
 
-Estas son activaciones de infraestructura o negocio, no funciones faltantes del prototipo. Consulta [ARQUITECTURA_PRODUCCION.md](ARQUITECTURA_PRODUCCION.md) y [RUNBOOK_PRODUCCION.md](RUNBOOK_PRODUCCION.md).
+Estas son activaciones de infraestructura o negocio, no funciones faltantes del prototipo. Consulta [ESTADO_STAGING_CLOUDFLARE.md](ESTADO_STAGING_CLOUDFLARE.md), [ARQUITECTURA_PRODUCCION.md](ARQUITECTURA_PRODUCCION.md) y [RUNBOOK_PRODUCCION.md](RUNBOOK_PRODUCCION.md).
