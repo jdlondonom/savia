@@ -8,7 +8,7 @@ Este ambiente sirve para aceptación técnica y configuración inicial. No es el
 
 - Aplicación: [savia-app-staging.jdlondonom.workers.dev](https://savia-app-staging.jdlondonom.workers.dev)
 - Salud: [savia-app-staging.jdlondonom.workers.dev/api/health](https://savia-app-staging.jdlondonom.workers.dev/api/health)
-- Release desplegada: `57cc2196626fca04fc99fe4bd8d768b4a97eeb2f`
+- Release desplegada: `18adc484bf2f226574fe6928ac3d79dbfc58352d`
 
 ## Inventario activo
 
@@ -46,7 +46,8 @@ Las configuraciones reales de Wrangler contienen IDs de la cuenta, por lo que es
 - `GET /api/health` respondió HTTP 200 con ambiente `staging` y la release indicada.
 - Las cabeceras de seguridad se observaron en la respuesta pública.
 - La pantalla `/setup` renderizó el flujo de superadministrador, solicitó el token temporal y completó una comprobación Turnstile válida.
-- TypeScript, ESLint, 4 pruebas unitarias, 12 pruebas de arquitectura y el build Vinext finalizaron correctamente.
+- TypeScript, ESLint, 7 pruebas unitarias, 12 pruebas de arquitectura y el build Vinext finalizaron correctamente.
+- El formulario de alta valida en el navegador la longitud y complejidad de la contraseña antes de invocar al servidor.
 - Los tres Workers se publicaron correctamente con sus bindings y disparadores.
 - Las migraciones remotas crearon 21 tablas de control y 17 tablas del plano de tenant, sin mezclar datos operativos en el plano global.
 - El bucket dedicado superó una prueba remota de escritura, lectura íntegra y eliminación; el objeto de diagnóstico fue eliminado.
