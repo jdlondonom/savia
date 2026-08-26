@@ -1,6 +1,6 @@
 # Estado del staging en Cloudflare
 
-Última actualización: 25 de agosto de 2026, zona horaria `America/Bogota`.
+Última actualización: 26 de agosto de 2026, zona horaria `America/Bogota`.
 
 ## Alcance
 
@@ -8,7 +8,7 @@ Este ambiente sirve para aceptación técnica y configuración inicial. No es el
 
 - Aplicación: [savia-app-staging.jdlondonom.workers.dev](https://savia-app-staging.jdlondonom.workers.dev)
 - Salud: [savia-app-staging.jdlondonom.workers.dev/api/health](https://savia-app-staging.jdlondonom.workers.dev/api/health)
-- Release desplegada: `18adc484bf2f226574fe6928ac3d79dbfc58352d`
+- Release desplegada: `15bdade24b31849d70944b2f5f73f499a5423a1e`
 
 ## Inventario activo
 
@@ -18,14 +18,14 @@ Este ambiente sirve para aceptación técnica y configuración inicial. No es el
 | Eventos | `savia-events-staging` | Publicado; consume la cola |
 | Mantenimiento | `savia-maintenance-staging` | Publicado; outbox cada minuto y retención diaria |
 | Control | D1 `savia-control-staging` | Migraciones `0001` y `0002` aplicadas |
-| Tenant inicial | D1 `savia-tenant-starter-staging` | Migración de tenant aplicada |
+| Tenant inicial | D1 `savia-tenant-starter-staging` | Migración aplicada; binding `TENANT_STARTER_DB` validado |
 | Búsqueda semántica | Vectorize `savia-tenant-starter-staging-v1` | 1536 dimensiones, coseno |
 | Mensajería interna | Queue `savia-events-staging` | Activa |
 | Errores definitivos | Queue `savia-events-dead-letter-staging` | Activa |
 | Serialización | Durable Object `ConversationCoordinator` | Activo |
 | Protección pública | Turnstile `Savia staging` | Activo en alta, acceso y recuperación |
 | Archivos | R2 `savia-staging-fallback-disabled` | Activo; fallback de seguridad |
-| Archivos del tenant inicial | R2 `savia-tenant-starter-staging` | Activo y enlazado a los tres Workers |
+| Archivos del tenant inicial | R2 `savia-tenant-starter-staging` | Activo; binding `TENANT_STARTER_FILES` validado |
 
 Las configuraciones reales de Wrangler contienen IDs de la cuenta, por lo que están excluidas de Git. Los archivos `cloudflare/*.example.jsonc` son la fuente versionada para reconstruirlas.
 
@@ -34,7 +34,8 @@ Las configuraciones reales de Wrangler contienen IDs de la cuenta, por lo que es
 - TLS administrado por Cloudflare y HSTS.
 - CSP, `frame-ancestors 'none'`, `X-Frame-Options: DENY`, `nosniff`, política de permisos y política de referencia.
 - Turnstile configurado con secreto cifrado; su carga y resolución se verificaron en la pantalla de alta.
-- Secreto de Better Auth, anillo de llaves maestras y token temporal de bootstrap guardados como secretos de Cloudflare.
+- Secreto de Better Auth y anillo de llaves maestras guardados como secretos de Cloudflare.
+- El token temporal de bootstrap fue eliminado después de confirmar el primer superadministrador y su MFA.
 - Registro público cerrado e invitaciones privadas.
 - MFA TOTP obligatorio antes de acceder a plataforma o tenants.
 - Migraciones durante peticiones desactivadas con `SAVIA_ALLOW_RUNTIME_MIGRATIONS=false`.
@@ -45,20 +46,22 @@ Las configuraciones reales de Wrangler contienen IDs de la cuenta, por lo que es
 
 - `GET /api/health` respondió HTTP 200 con ambiente `staging` y la release indicada.
 - Las cabeceras de seguridad se observaron en la respuesta pública.
-- La pantalla `/setup` renderizó el flujo de superadministrador, solicitó el token temporal y completó una comprobación Turnstile válida.
-- TypeScript, ESLint, 7 pruebas unitarias, 12 pruebas de arquitectura y el build Vinext finalizaron correctamente.
+- El primer superadministrador está activo con MFA y `/setup` ya redirige a `/login`.
+- TypeScript, ESLint, 7 pruebas unitarias, 13 pruebas de arquitectura y el build Vinext finalizaron correctamente.
 - El formulario de alta valida en el navegador la longitud y complejidad de la contraseña antes de invocar al servidor.
+- El formulario de invitación comparte la misma política de contraseña y la aceptación mantiene separadas las escrituras del plano global y del tenant.
 - Los tres Workers se publicaron correctamente con sus bindings y disparadores.
 - Las migraciones remotas crearon 21 tablas de control y 17 tablas del plano de tenant, sin mezclar datos operativos en el plano global.
 - El bucket dedicado superó una prueba remota de escritura, lectura íntegra y eliminación; el objeto de diagnóstico fue eliminado.
+- D1, R2 y Vectorize del tenant inicial fueron comprobados y `tenant_resources` quedó en estado `ready` con los bindings `TENANT_STARTER_DB`, `TENANT_STARTER_FILES` y `TENANT_STARTER_VECTORS`.
+- La invitación que expuso el fallo continúa pendiente y no produjo una cuenta parcial; puede reintentarse con el mismo enlace.
 
-## Acciones manuales inmediatas
+## Inicialización completada
 
-1. Abrir [el alta inicial](https://savia-app-staging.jdlondonom.workers.dev/setup).
-2. Crear el primer `superadmin` usando el token temporal entregado por un canal seguro.
-3. Registrar el autenticador TOTP y guardar los códigos de recuperación fuera del PC.
-4. Confirmar que `/platform` exige MFA y que no vuelve a permitir otra inicialización.
-5. Eliminar inmediatamente `SAVIA_BOOTSTRAP_TOKEN` del Worker de aplicación.
+1. Se creó el primer `superadmin`.
+2. Se confirmó MFA TOTP obligatorio.
+3. Se retiró `SAVIA_BOOTSTRAP_TOKEN` del Worker de aplicación.
+4. Se confirmó que el alta inicial queda cerrada y redirige al inicio de sesión.
 
 El token no debe copiarse a documentación, incidencias, mensajes ni archivos del repositorio.
 
@@ -73,7 +76,7 @@ La suscripción R2 fue autorizada y está activa. Cloudflare puede cobrar autom�
 - Ambos bindings están presentes en aplicación, consumidor y mantenimiento.
 - La activación de R2 no sustituye el respaldo externo ni la prueba de restauración.
 
-Después de crear el primer tenant desde el panel global se debe registrar y validar `TENANT_STARTER_FILES` en `tenant_resources`, y después probar carga, recuperación, retención y eliminación física de un documento desde la aplicación.
+Los tres recursos del tenant inicial ya están registrados y validados en `tenant_resources`. Antes de usar documentos reales todavía debe probarse desde la aplicación el ciclo completo de carga, recuperación, retención y eliminación física.
 
 ### Integraciones externas
 
