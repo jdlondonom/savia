@@ -71,6 +71,7 @@ export async function getAppContext(): Promise<AppContext> {
       role: membership.role,
       platformRole: session.platformRole,
       mfaEnabled: session.mfaEnabled,
+      sessionExpiresAt: new Date(session.auth.session.expiresAt).toISOString(),
     },
     tenant: mapTenant(tenantRow),
     tenants: memberships,

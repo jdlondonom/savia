@@ -95,6 +95,14 @@ Tecnología principal:
 - No se usan dispositivos confiables que omitan el segundo factor.
 - Recuperar contraseña o MFA revoca las sesiones vigentes.
 
+### Sesiones
+
+- Cada sesión dura como máximo 12 horas y el acceso no ofrece la opción de mantenerla abierta indefinidamente.
+- Las pantallas del CRM y de administración conocen la hora de vencimiento. Al alcanzarla, o al volver a una pestaña que quedó abierta, llevan al usuario al inicio de sesión y conservan únicamente un destino interno seguro.
+- Las rutas y acciones protegidas vuelven a validar la sesión en el servidor. Una pestaña antigua no puede seguir operando con datos ya cargados.
+- El inicio de sesión explica que la sesión terminó por seguridad; la pantalla general de error también permite volver a autenticarse sin mostrar detalles internos.
+- El mantenimiento elimina diariamente de la base de control las sesiones vencidas y registra solo la cantidad eliminada, nunca tokens, correos ni datos personales.
+
 ### Roles
 
 | Ámbito | Rol | Facultades |
@@ -209,6 +217,7 @@ No se incluye sincronización con Google Calendar o Microsoft 365 en esta versi�
 - Política separada para mensajes, documentos y auditoría.
 - Worker programado para republicación del outbox y limpieza.
 - Limpieza de mensajes, documentos, generaciones de IA y eventos de outbox vencidos.
+- Limpieza diaria de sesiones de autenticación vencidas.
 - Eliminación del objeto R2 cuando expira un documento.
 - Auditoría de acciones globales y del tenant.
 - Logs estructurados sin cuerpos de mensajes ni secretos.

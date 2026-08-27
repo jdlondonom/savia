@@ -26,6 +26,10 @@ import {
 } from '@/app/platform/actions';
 import { authClient } from '@/lib/auth-client';
 import { OperationsPanel } from '@/app/platform/operations-panel';
+import {
+  redirectIfCurrentSessionExpired,
+  useSessionExpiry,
+} from '@/lib/session-expiry-client';
 import type {
   AiProvider,
   AiPurpose,
@@ -58,6 +62,7 @@ export function PlatformDashboard({ initialData }: { initialData: PlatformData }
   const [notice, setNotice] = useState<Notice>(null);
   const [invitationUrl, setInvitationUrl] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  useSessionExpiry(data.currentUser.sessionExpiresAt, '/platform');
   const canManage = data.currentUser.role === 'superadmin';
 
   function run(work: () => Promise<PlatformData>, success?: string, after?: (data: PlatformData) => void) {
@@ -69,6 +74,7 @@ export function PlatformDashboard({ initialData }: { initialData: PlatformData }
         after?.(next);
         if (success) setNotice({ kind: 'success', text: success });
       } catch (error) {
+        if (redirectIfCurrentSessionExpired(data.currentUser.sessionExpiresAt, '/platform')) return;
         setNotice({ kind: 'error', text: errorMessage(error) });
       }
     });

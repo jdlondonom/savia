@@ -2,6 +2,7 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { dbFirst, dbRun, ensureDatabase } from '@/lib/database';
+import { buildLoginUrl, safeReturnTo } from '@/lib/session-expiry';
 
 export type PlatformRole = 'superadmin' | 'support';
 
@@ -64,7 +65,7 @@ export async function requireSaviaSession(options: {
   returnTo?: string;
 } = {}): Promise<SaviaSession> {
   const session = await getOptionalSaviaSession();
-  if (!session) redirect(`/login?returnTo=${encodeURIComponent(safeReturnTo(options.returnTo))}`);
+  if (!session) redirect(buildLoginUrl(safeReturnTo(options.returnTo)));
   if (!session.mfaEnabled && !options.allowMfaEnrollment) redirect('/mfa-enroll');
   return session;
 }
@@ -78,9 +79,4 @@ export async function requirePlatformUser(options: {
     throw new Error('Esta acción requiere el rol de superadministrador global.');
   }
   return session;
-}
-
-function safeReturnTo(value?: string): string {
-  if (!value || !value.startsWith('/') || value.startsWith('//')) return '/';
-  return value;
 }

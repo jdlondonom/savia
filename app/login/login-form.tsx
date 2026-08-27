@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Turnstile } from '@/app/turnstile';
 import { authClient } from '@/lib/auth-client';
 
-export function LoginForm({ returnTo, turnstileSiteKey }: { returnTo: string; turnstileSiteKey: string | null }) {
+export function LoginForm({ notice, returnTo, turnstileSiteKey }: { notice: string | null; returnTo: string; turnstileSiteKey: string | null }) {
   const [error, setError] = useState('');
   const [captchaToken, setCaptchaToken] = useState('');
   const [captchaAttempt, setCaptchaAttempt] = useState(0);
@@ -37,6 +37,7 @@ export function LoginForm({ returnTo, turnstileSiteKey }: { returnTo: string; tu
   return (
     <form onSubmit={submit} className="space-y-5">
       <div><p className="text-xs font-black uppercase tracking-[.16em] text-[#648073]">Bienvenido</p><h2 className="mt-2 text-2xl font-black tracking-tight">Inicia sesión en Savia</h2></div>
+      {notice ? <p role="status" className="rounded-xl border border-[#d9e3b4] bg-[#f8fbe9] p-3 text-sm font-semibold text-[#526523]">{notice}</p> : null}
       <label className="block"><span className="mb-1.5 block text-xs font-extrabold uppercase tracking-[.08em] text-[#687970]">Correo</span><input required name="email" type="email" autoComplete="email" className="w-full rounded-xl border border-[#d6e1da] px-4 py-3 text-sm shadow-sm focus:border-[#628c76]" /></label>
       <label className="block"><span className="mb-1.5 block text-xs font-extrabold uppercase tracking-[.08em] text-[#687970]">Contraseña</span><input required name="password" type="password" autoComplete="current-password" className="w-full rounded-xl border border-[#d6e1da] px-4 py-3 text-sm shadow-sm focus:border-[#628c76]" /></label>
       <Turnstile key={captchaAttempt} siteKey={turnstileSiteKey} onToken={setCaptchaToken} />

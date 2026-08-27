@@ -128,6 +128,7 @@ export type PlatformData = {
     name: string;
     email: string;
     role: PlatformRole;
+    sessionExpiresAt: string;
   };
   tenants: PlatformTenant[];
   users: PlatformUser[];
@@ -326,6 +327,7 @@ export async function getPlatformData(): Promise<PlatformData> {
       name: session.user.name,
       email: session.user.email,
       role: session.platformRole!,
+      sessionExpiresAt: new Date(session.auth.session.expiresAt).toISOString(),
     },
     tenants: tenants.map((tenant) => ({
       id: tenant.id,

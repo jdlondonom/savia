@@ -68,6 +68,24 @@ test('MFA, Turnstile y recuperación permanecen habilitados', async () => {
   assert.match(actions, /constantTimeEqual/);
 });
 
+test('las sesiones vencidas se recuperan sin exponer errores internos', async () => {
+  const session = await read('lib/session.ts');
+  const dashboard = await read('app/dashboard.tsx');
+  const platform = await read('app/platform/platform-dashboard.tsx');
+  const login = await read('app/login/page.tsx');
+  const errorPage = await read('app/error.tsx');
+  const maintenance = await read('workers/maintenance.ts');
+  assert.match(session, /buildLoginUrl/);
+  assert.match(dashboard, /useSessionExpiry/);
+  assert.match(dashboard, /redirectIfCurrentSessionExpired/);
+  assert.match(platform, /useSessionExpiry/);
+  assert.match(platform, /redirectIfCurrentSessionExpired/);
+  assert.match(login, /Tu sesión terminó por seguridad/);
+  assert.match(errorPage, /Volver a iniciar sesión/);
+  assert.match(maintenance, /purgeExpiredAuthSessions/);
+  assert.match(maintenance, /auth\.sessions\.expired_purged/);
+});
+
 test('los encabezados de seguridad se aplican en la capa de petición', async () => {
   const proxy = await read('proxy.ts');
   const headers = await read('lib/security-headers.ts');

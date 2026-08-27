@@ -26,6 +26,10 @@ import {
   anonymizeContactAction,
 } from '@/app/actions';
 import { authClient } from '@/lib/auth-client';
+import {
+  redirectIfCurrentSessionExpired,
+  useSessionExpiry,
+} from '@/lib/session-expiry-client';
 import type {
   Appointment,
   Contact,
@@ -63,6 +67,7 @@ export function Dashboard({ initialData }: { initialData: DashboardData }) {
   const [selectedConversationId, setSelectedConversationId] = useState(initialData.conversations[0]?.id ?? '');
   const [notice, setNotice] = useState<Notice>(null);
   const [isPending, startTransition] = useTransition();
+  useSessionExpiry(data.user.sessionExpiresAt, '/');
   const effectiveSelectedConversationId = data.conversations.some((conversation) => conversation.id === selectedConversationId)
     ? selectedConversationId
     : data.conversations[0]?.id ?? '';
@@ -82,6 +87,7 @@ export function Dashboard({ initialData }: { initialData: DashboardData }) {
         options.after?.(nextData);
         if (options.success) setNotice({ kind: 'success', text: options.success });
       } catch (error) {
+        if (redirectIfCurrentSessionExpired(data.user.sessionExpiresAt, '/')) return;
         setNotice({
           kind: 'error',
           text: error instanceof Error ? error.message : 'No fue posible completar la acción.',

@@ -24,6 +24,7 @@ export type AppUser = {
   role: MemberTenant['role'];
   platformRole: 'superadmin' | 'support' | null;
   mfaEnabled: boolean;
+  sessionExpiresAt: string;
 };
 
 export type Contact = {
