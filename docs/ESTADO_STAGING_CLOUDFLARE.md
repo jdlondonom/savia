@@ -1,6 +1,6 @@
 # Estado del staging en Cloudflare
 
-Última actualización: 26 de agosto de 2026, zona horaria `America/Bogota`.
+Última actualización: 27 de agosto de 2026, zona horaria `America/Bogota`.
 
 ## Alcance
 
@@ -8,7 +8,7 @@ Este ambiente sirve para aceptación técnica y configuración inicial. No es el
 
 - Aplicación: [savia-app-staging.jdlondonom.workers.dev](https://savia-app-staging.jdlondonom.workers.dev)
 - Salud: [savia-app-staging.jdlondonom.workers.dev/api/health](https://savia-app-staging.jdlondonom.workers.dev/api/health)
-- Release desplegada: `da01b65993aa6167d3153cc3e34689c8fe47f4e5`
+- Release desplegada: `bf16676e38cc4c03235203a78743291fefe7627b`
 
 ## Inventario activo
 
@@ -16,7 +16,7 @@ Este ambiente sirve para aceptación técnica y configuración inicial. No es el
 |---|---|---|
 | Aplicación | `savia-app-staging` | Publicado |
 | Eventos | `savia-events-staging` | Publicado; consume la cola |
-| Mantenimiento | `savia-maintenance-staging` | Publicado; outbox cada minuto y retención diaria |
+| Mantenimiento | `savia-maintenance-staging` | Publicado; outbox cada minuto, retención y limpieza de sesiones diaria |
 | Control | D1 `savia-control-staging` | Migraciones `0001` y `0002` aplicadas |
 | Tenant inicial | D1 `savia-tenant-starter-staging` | Migración aplicada; binding `TENANT_STARTER_DB` validado |
 | Búsqueda semántica | Vectorize `savia-tenant-starter-staging-v1` | 1536 dimensiones, coseno |
@@ -38,18 +38,22 @@ Las configuraciones reales de Wrangler contienen IDs de la cuenta, por lo que es
 - El token temporal de bootstrap fue eliminado después de confirmar el primer superadministrador y su MFA.
 - Registro público cerrado e invitaciones privadas.
 - MFA TOTP obligatorio antes de acceder a plataforma o tenants.
+- Las pestañas abiertas detectan el vencimiento de sesión, regresan al acceso y conservan solo destinos internos seguros.
+- La pantalla de acceso explica el vencimiento sin mostrar detalles internos; la pantalla general de error ofrece reautenticación y reintento.
 - Migraciones durante peticiones desactivadas con `SAVIA_ALLOW_RUNTIME_MIGRATIONS=false`.
 - Datos de tenant configurados para fallar de forma segura si falta un recurso dedicado.
 - Secretos y configuraciones reales excluidos del repositorio.
 
 ## Evidencia de validación
 
-- `GET /api/health` respondió HTTP 200 con ambiente `staging` y la release indicada.
+- Cloudflare confirmó como activas la versión de aplicación `197320dd-d957-41e5-9698-fc7d634c58ef` y la versión de mantenimiento `3e0fdf77-3e74-4492-a7fc-e8f751406337`, ambas publicadas con la release indicada.
+- La comprobación HTTPS posterior desde el equipo de desarrollo fue interrumpida por el software de red local antes de recibir respuesta; queda pendiente la aceptación visual desde un navegador independiente.
 - Las cabeceras de seguridad se observaron en la respuesta pública.
 - El panel global y la configuración del tenant muestran la URL HTTPS pública completa de cada webhook; no exponen `localhost`.
 - La interfaz identifica correctamente el ambiente de pruebas, la release y el simulador de WhatsApp pendiente de configurar.
 - El primer superadministrador está activo con MFA y `/setup` ya redirige a `/login`.
-- TypeScript, ESLint, 7 pruebas unitarias, 13 pruebas de arquitectura y el build Vinext finalizaron correctamente.
+- TypeScript, ESLint, 10 pruebas unitarias, 14 pruebas de arquitectura y el build Vinext finalizaron correctamente.
+- Las pruebas cubren el destino seguro después del acceso, el cálculo de vencimiento, la recuperación en CRM y plataforma y la purga programada sin datos personales en logs.
 - El formulario de alta valida en el navegador la longitud y complejidad de la contraseña antes de invocar al servidor.
 - El formulario de invitación comparte la misma política de contraseña y la aceptación mantiene separadas las escrituras del plano global y del tenant.
 - Los tres Workers se publicaron correctamente con sus bindings y disparadores.
